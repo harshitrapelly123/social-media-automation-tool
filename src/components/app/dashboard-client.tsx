@@ -261,32 +261,55 @@ export default function DashboardClient({
       if (editingMode === 'text') {
         // Handle text editing
         setPosts(prev =>
-          prev.map(p => (p.id === editingPostId ? { ...p, content: '...' } : p))
+          prev.map(p => (p.id === editingPostId ? { ...p, content: 'Generating content...' } : p))
         );
 
-        const result = await regeneratePostWithEdits({
-          originalPost: originalPost.content,
-          userEdits: editingDescription,
-          topic: topics[0] || 'general',
-          platform: originalPost.platform,
-          imageUri: undefined,
-        });
+        try {
+          const result = await regeneratePostWithEdits({
+            originalPost: originalPost.content,
+            userEdits: editingDescription,
+            topic: topics[0] || 'general',
+            platform: originalPost.platform,
+            imageUri: undefined,
+          });
 
-        setPosts(prev =>
-          prev.map(p =>
-            p.id === editingPostId
-              ? {
-                  ...originalPost,
-                  content: result.regeneratedPost,
-                }
-              : p
-          )
-        );
+          setPosts(prev =>
+            prev.map(p =>
+              p.id === editingPostId
+                ? {
+                    ...originalPost,
+                    content: result.regeneratedPost,
+                  }
+                : p
+            )
+          );
 
-        toast({
-          title: 'Content Updated!',
-          description: `Post content has been updated based on your instructions.`,
-        });
+          toast({
+            title: 'Content Updated!',
+            description: `Post content has been updated based on your instructions.`,
+          });
+        } catch (fetchError) {
+          console.error('AI Service Error:', fetchError);
+
+          // Provide a fallback response when AI service is unavailable
+          const fallbackContent = `${originalPost.content}\n\n[Updated based on your request: ${editingDescription}]`;
+
+          setPosts(prev =>
+            prev.map(p =>
+              p.id === editingPostId
+                ? {
+                    ...originalPost,
+                    content: fallbackContent,
+                  }
+                : p
+            )
+          );
+
+          toast({
+            title: 'Content Updated (Demo Mode)',
+            description: `Post content has been updated using fallback mode. AI service may be unavailable.`,
+          });
+        }
       } else if (editingMode === 'image') {
         // Handle image editing - for now just show success message
         await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
@@ -299,7 +322,7 @@ export default function DashboardClient({
 
       handleCloseEditing();
     } catch (e) {
-      console.error(e);
+      console.error('General Error:', e);
       toast({
         variant: 'destructive',
         title: 'Generation Error',
