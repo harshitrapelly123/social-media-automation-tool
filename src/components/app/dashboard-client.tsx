@@ -18,6 +18,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 
+
 const platforms: Platform[] = ['Facebook', 'Twitter', 'Instagram', 'LinkedIn'];
 const { placeholderImages } = placeholderData;
 const defaultTopics: Topic[] = ['Technology', 'Health & Wellness'];
@@ -76,8 +77,9 @@ export default function DashboardClient({
     undefined
   );
   const [openPostId, setOpenPostId] = useState<string | null>(null);
-  const [expandAllMode, setExpandAllMode] = useState(false);
+  const [expandAllMode, setExpandAllMode] = useState(true);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+
 
   const isGeneratorPage = pathname === '/dashboard';
 
@@ -270,11 +272,13 @@ export default function DashboardClient({
     }
   };
 
+
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
       <div className="md:col-span-2 space-y-8">
         {/* View Mode Toggle */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="flex items-center gap-1">
               {viewMode === 'desktop' ? (
