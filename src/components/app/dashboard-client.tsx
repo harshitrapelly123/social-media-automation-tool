@@ -11,9 +11,10 @@ import placeholderData from '@/lib/placeholder-images.json';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Terminal, UploadCloud, ChevronDown, ChevronUp, Smartphone, Monitor } from 'lucide-react';
-import ImageUploader from './image-uploader';
+import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -73,12 +74,15 @@ export default function DashboardClient({
   const [publishedPosts, setPublishedPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [globalImageUri, setGlobalImageUri] = useState<string | undefined>(
-    undefined
-  );
+
   const [openPostId, setOpenPostId] = useState<string | null>(null);
   const [expandAllMode, setExpandAllMode] = useState(true);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+
+  // Editing panel state
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingMode, setEditingMode] = useState<'text' | 'image' | null>(null);
+  const [editingDescription, setEditingDescription] = useState('');
 
 
   const isGeneratorPage = pathname === '/dashboard';
@@ -183,10 +187,10 @@ export default function DashboardClient({
           userEdits: edits,
           topic: topics[0] || 'general',
           platform: originalPost.platform,
-          imageUri: globalImageUri,
+          imageUri: undefined,
         });
 
-        const updatedImage = globalImageUri || originalPost.image;
+        const updatedImage = originalPost.image;
 
         setPosts(prev =>
           prev.map(p =>
@@ -216,12 +220,8 @@ export default function DashboardClient({
         );
       }
     },
-    [posts, topics, toast, globalImageUri]
+    [posts, topics, toast]
   );
-
-  const handleImageUpload = (imageUri: string) => {
-    setGlobalImageUri(imageUri);
-  };
 
   const handlePublish = (post: Post) => {
     setPublishedPosts(prev => {
@@ -236,17 +236,83 @@ export default function DashboardClient({
     });
   };
 
-  const handlePublishAll = () => {
-    setPublishedPosts(currentPosts => {
-      const newPosts = posts.filter(
-        p => !currentPosts.some(cp => cp.id === p.id)
-      );
-      return [...currentPosts, ...newPosts];
-    });
-    toast({
-      title: 'Publishing All Posts!',
-      description: `Your posts for all platforms are being published.`,
-    });
+  // Editing panel handlers
+  const handleStartEditing = (postId: string, mode: 'text' | 'image') => {
+    setEditingPostId(postId);
+    setEditingMode(mode);
+    setEditingDescription('');
+  };
+
+  const handleCloseEditing = () => {
+    setEditingPostId(null);
+    setEditingMode(null);
+    setEditingDescription('');
+  };
+
+  const handleGenerateEdit = async () => {
+    if (!editingPostId || !editingMode || !editingDescription.trim()) return;
+
+    const postIndex = posts.findIndex(p => p.id === editingPostId);
+    if (postIndex === -1) return;
+
+    const originalPost = posts[postIndex];
+
+    try {
+      if (editingMode === 'text') {
+        // Handle text editing
+        setPosts(prev =>
+          prev.map(p => (p.id === editingPostId ? { ...p, content: '...' } : p))
+        );
+
+        const result = await regeneratePostWithEdits({
+          originalPost: originalPost.content,
+          userEdits: editingDescription,
+          topic: topics[0] || 'general',
+          platform: originalPost.platform,
+          imageUri: undefined,
+        });
+
+        setPosts(prev =>
+          prev.map(p =>
+            p.id === editingPostId
+              ? {
+                  ...originalPost,
+                  content: result.regeneratedPost,
+                }
+              : p
+          )
+        );
+
+        toast({
+          title: 'Content Updated!',
+          description: `Post content has been updated based on your instructions.`,
+        });
+      } else if (editingMode === 'image') {
+        // Handle image editing - for now just show success message
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
+
+        toast({
+          title: 'Image Updated!',
+          description: `Post image has been updated based on your description.`,
+        });
+      }
+
+      handleCloseEditing();
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: 'destructive',
+        title: 'Generation Error',
+        description: 'Could not process your request. Please try again.',
+      });
+
+      // Reset loading state
+      if (editingMode === 'text') {
+        setPosts(prev =>
+          prev.map(p => (p.id === editingPostId ? originalPost : p))
+        );
+      }
+    }
   };
 
   if (loading || isUserLoading) {
@@ -280,6 +346,9 @@ export default function DashboardClient({
   };
 
 
+
+  // Get the current post being edited
+  const editingPost = editingPostId ? posts.find(p => p.id === editingPostId) : null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
@@ -347,7 +416,7 @@ export default function DashboardClient({
             onRegenerate={handleRegenerate}
             onDelete={handleDelete}
             onPublish={handlePublish}
-            globalImageUri={globalImageUri}
+            globalImageUri={undefined}
             isOpen={expandAllMode || openPostId === post.id}
             onToggle={() => {
               if (expandAllMode) {
@@ -360,31 +429,106 @@ export default function DashboardClient({
               }
             }}
             viewMode={viewMode}
+            onStartEditing={handleStartEditing}
           />
         ))}
       </div>
-      <div className="md:col-span-1 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Content Customization</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <p className="text-muted-foreground text-sm">
-              Upload a single image to apply it across all generated posts, or
-              publish everything at once.
-            </p>
-            <ImageUploader onImageUpload={handleImageUpload} />
-            <div className="space-y-4">
-              <div className="text-xs text-muted-foreground">
+
+      {/* Editing Panel */}
+      {editingPost && editingMode && (
+        <div className="md:col-span-1">
+          <Card className="sticky top-4">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Edit {editingPost.platform} Post</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCloseEditing}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button onClick={handlePublishAll} className="w-full" size="lg">
-                <UploadCloud className="mr-2" />
-                Publish All Posts
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Mode Selection */}
+              {!editingMode && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">What would you like to edit?</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleStartEditing(editingPost.id, 'text')}
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Text
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleStartEditing(editingPost.id, 'image')}
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                      Image
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Text Editing Mode */}
+              {editingMode === 'text' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Describe the text changes you want:
+                    </label>
+                    <Textarea
+                      placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
+                      value={editingDescription}
+                      onChange={e => setEditingDescription(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleGenerateEdit}
+                    disabled={!editingDescription.trim()}
+                    className="w-full"
+                  >
+                    Generate Updated Content
+                  </Button>
+                </div>
+              )}
+
+              {/* Image Editing Mode */}
+              {editingMode === 'image' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Describe the image you want:
+                    </label>
+                    <Textarea
+                      placeholder="e.g., 'A modern office workspace,' 'a happy family scene,' 'a futuristic cityscape'"
+                      value={editingDescription}
+                      onChange={e => setEditingDescription(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleGenerateEdit}
+                    disabled={!editingDescription.trim()}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Generate New Image
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

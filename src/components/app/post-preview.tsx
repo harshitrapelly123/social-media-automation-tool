@@ -1,13 +1,14 @@
-
 'use client';
 
-import { useState } from 'react';
+
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Skeleton } from '@/components/ui/skeleton';
+
 import type { Post, platformDimensions, defaultEngagementMetrics } from '@/lib/types';
 import { platformDimensions as dimensions, defaultEngagementMetrics as metrics } from '@/lib/types';
 import { Sparkles, Repeat, MessageCircle, Heart, Share2, Upload, ChevronDown } from 'lucide-react';
@@ -37,9 +38,7 @@ const platformIcons = {
     </svg>
   ),
 };
-import { Skeleton } from '../ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+
 
 interface PostPreviewProps {
   post: Post;
@@ -50,17 +49,18 @@ interface PostPreviewProps {
   isOpen: boolean;
   onToggle: () => void;
   viewMode?: 'desktop' | 'mobile';
+  onStartEditing?: (postId: string, mode: 'text' | 'image') => void;
 }
 
-export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle, viewMode = 'desktop' }: PostPreviewProps) {
-  const [edits, setEdits] = useState('');
-  const [isRegenerating, setIsRegenerating] = useState(false);
-
-  const handleRegenerateClick = async () => {
-    setIsRegenerating(true);
-    await onRegenerate(post.id, edits);
-    setEdits('');
-    setIsRegenerating(false);
+export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing }: PostPreviewProps) {
+  const handleRegenerateClick = () => {
+    // Instead of directly regenerating, open the editing panel
+    if (onStartEditing) {
+      onStartEditing(post.id, 'text');
+    } else {
+      // Fallback to direct regeneration if no editing panel
+      onRegenerate(post.id, '');
+    }
   };
 
   const handlePublishClick = () => {
@@ -109,12 +109,11 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
               <div className="flex items-center gap-1 ml-2">
                 <Button
                   onClick={handleRegenerateClick}
-                  disabled={isRegenerating}
                   variant="outline"
                   size="sm"
                   className="h-7 w-7 p-0"
                 >
-                  {isRegenerating ? <Repeat className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  <Sparkles className="h-3 w-3" />
                 </Button>
                 <Button
                   onClick={handlePublishClick}
@@ -232,36 +231,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                 ) : null}
               </div>
             </CardContent>
-            <CardFooter className="bg-muted/50 p-3 flex flex-col items-start gap-3">
-              <div className="w-full">
-                <label htmlFor={`edits-${post.id}`} className="text-xs font-medium mb-1 block">
-                  Want changes? Tell the AI.
-                </label>
-                <Textarea
-                  id={`edits-${post.id}`}
-                  placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
-                  value={edits}
-                  onChange={e => setEdits(e.target.value)}
-                  className="bg-background text-sm"
-                  rows={2}
-                />
-              </div>
-              <div className="flex gap-2 w-full">
-                <Button
-                  onClick={handleRegenerateClick}
-                  disabled={isRegenerating}
-                  className="flex-1 text-sm"
-                  size="sm"
-                >
-                  {isRegenerating ? <Repeat className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                  {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-                </Button>
-                <Button onClick={handlePublishClick} variant="outline" className="flex-1 text-sm" size="sm">
-                  <Upload className="mr-1 h-3 w-3" />
-                  Publish
-                </Button>
-              </div>
-            </CardFooter>
+
           </CollapsibleContent>
         </Collapsible>
       </Card>
@@ -307,12 +277,11 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
             <div className="flex items-center gap-2 ml-4">
               <Button
                 onClick={handleRegenerateClick}
-                disabled={isRegenerating}
                 variant="outline"
                 size="sm"
                 className="h-8"
               >
-                {isRegenerating ? <Repeat className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                <Sparkles className="h-3 w-3" />
               </Button>
               <Button
                 onClick={handlePublishClick}
@@ -430,32 +399,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
               ) : null}
             </div>
           </CardContent>
-          <CardFooter className="bg-muted/50 p-4">
-            <div className="w-full space-y-3">
-              <div>
-                <label htmlFor={`edits-${post.id}`} className="text-sm font-medium mb-2 block">
-                  Want changes? Tell the AI.
-                </label>
-                <Textarea
-                  id={`edits-${post.id}`}
-                  placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
-                  value={edits}
-                  onChange={e => setEdits(e.target.value)}
-                  className="bg-background"
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleRegenerateClick}
-                  disabled={isRegenerating}
-                  className="w-auto"
-                >
-                  {isRegenerating ? <Repeat className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  {isRegenerating ? 'Regenerating...' : 'Regenerate with Changes'}
-                </Button>
-              </div>
-            </div>
-          </CardFooter>
+
         </CollapsibleContent>
       </Collapsible>
     </Card>
