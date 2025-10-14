@@ -67,31 +67,74 @@ export default function TopicsPage() {
   }, [formData, generatedSummary, showSummaryActions, inputsCollapsed, isEditingSummary, editedSummary]);
 
   const scrollToForm = () => {
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setShowCreateForm(true);
+    // Small delay to ensure state is updated before scrolling
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
   const generateDummySummary = (topic: string, description: string) => {
-    return `Description
-
-${description}
-
-This comprehensive overview covers the essential aspects of ${topic.toLowerCase()}, providing valuable insights and practical guidance for better understanding and application in real-world scenarios.`;
+    return `${description} This overview explores key aspects of ${topic.toLowerCase()}, offering practical insights and valuable guidance for better understanding and real-world application in today's context.`;
   };
 
   const handleGenerateSummary = async () => {
     if (!formData.topic.trim() || !formData.description.trim()) return;
 
     setIsGenerating(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Generate dummy summary
-    const summary = generateDummySummary(formData.topic, formData.description);
-    setGeneratedSummary(summary);
-    setShowSummaryActions(true);
-    setInputsCollapsed(true); // Collapse inputs after generation
-    setIsGenerating(false);
+    try {
+      // Try to use real Gemini API if available
+      if (typeof window !== 'undefined') {
+        const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+
+        if (GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here') {
+          // Use real API if key is properly configured
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `Create a comprehensive summary for the topic "${formData.topic}" with the following description: ${formData.description}. Make it engaging and informative.`
+                }]
+              }]
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const generatedText = data.candidates[0]?.content?.parts[0]?.text || 'No content generated';
+
+            setGeneratedSummary(generatedText);
+            setShowSummaryActions(true);
+            setInputsCollapsed(true);
+            setIsGenerating(false);
+            return;
+          }
+        }
+      }
+
+      // Fallback to dummy data if API fails or no key
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const summary = generateDummySummary(formData.topic, formData.description);
+      setGeneratedSummary(summary);
+      setShowSummaryActions(true);
+      setInputsCollapsed(true);
+      setIsGenerating(false);
+
+    } catch (error) {
+      console.error('API Error:', error);
+      // Fallback to dummy data on any error
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const summary = generateDummySummary(formData.topic, formData.description);
+      setGeneratedSummary(summary);
+      setShowSummaryActions(true);
+      setInputsCollapsed(true);
+      setIsGenerating(false);
+    }
   };
 
   const handleRegenerate = async () => {
