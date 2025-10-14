@@ -11,11 +11,12 @@ import placeholderData from '@/lib/placeholder-images.json';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Terminal, UploadCloud, ChevronDown, ChevronUp } from 'lucide-react';
+import { Terminal, UploadCloud, ChevronDown, ChevronUp, Smartphone, Monitor } from 'lucide-react';
 import ImageUploader from './image-uploader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
 
 const platforms: Platform[] = ['Facebook', 'Twitter', 'Instagram', 'LinkedIn'];
 const { placeholderImages } = placeholderData;
@@ -76,6 +77,7 @@ export default function DashboardClient({
   );
   const [openPostId, setOpenPostId] = useState<string | null>(null);
   const [expandAllMode, setExpandAllMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   const isGeneratorPage = pathname === '/dashboard';
 
@@ -271,25 +273,61 @@ export default function DashboardClient({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
       <div className="md:col-span-2 space-y-8">
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToggleAll}
-            className="flex items-center gap-2"
-          >
-            {allPostsClosed ? (
-              <>
-                <ChevronDown className="h-4 w-4" />
-                Expand All
-              </>
-            ) : (
-              <>
-                <ChevronUp className="h-4 w-4" />
-                Collapse All
-              </>
-            )}
-          </Button>
+        {/* View Mode Toggle */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="flex items-center gap-1">
+              {viewMode === 'desktop' ? (
+                <>
+                  <Monitor className="h-3 w-3" />
+                  Desktop View
+                </>
+              ) : (
+                <>
+                  <Smartphone className="h-3 w-3" />
+                  Mobile View
+                </>
+              )}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'desktop' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('desktop')}
+              className="flex items-center gap-1"
+            >
+              <Monitor className="h-3 w-3" />
+              Desktop
+            </Button>
+            <Button
+              variant={viewMode === 'mobile' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('mobile')}
+              className="flex items-center gap-1"
+            >
+              <Smartphone className="h-3 w-3" />
+              Mobile
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleAll}
+              className="flex items-center gap-2"
+            >
+              {allPostsClosed ? (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Expand All
+                </>
+              ) : (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Collapse All
+                </>
+              )}
+            </Button>
+          </div>
         </div>
         {posts.map(post => (
           <PostPreview
@@ -310,6 +348,7 @@ export default function DashboardClient({
                 setOpenPostId(post.id);
               }
             }}
+            viewMode={viewMode}
           />
         ))}
       </div>

@@ -23,9 +23,10 @@ interface PostPreviewProps {
   globalImageUri: string | undefined;
   isOpen: boolean;
   onToggle: () => void;
+  viewMode?: 'desktop' | 'mobile';
 }
 
-export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle }: PostPreviewProps) {
+export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle, viewMode = 'desktop' }: PostPreviewProps) {
   const [edits, setEdits] = useState('');
   const [isRegenerating, setIsRegenerating] = useState(false);
 
@@ -47,6 +48,171 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
   const isContentLoading = post.content === '...';
   const displayImage = globalImageUri || post.image;
 
+  // Mobile view layout
+  if (viewMode === 'mobile') {
+    return (
+      <Card className="w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <Collapsible open={isOpen} onOpenChange={onToggle}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="flex flex-row items-center justify-between space-x-0 p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex flex-row items-center space-x-3 flex-1">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={post.author.avatar} alt={post.author.name} />
+                  <AvatarFallback className="text-xs">{post.author.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{post.author.name}</p>
+                  <p className="text-xs text-muted-foreground">{post.platform} Post</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isOpen && "transform rotate-180")} />
+              </Button>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="p-3 pt-0 space-y-3">
+              {isContentLoading ? (
+                  <div className="space-y-2">
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-[90%]" />
+                      <Skeleton className="h-3 w-[80%]" />
+                  </div>
+              ) : (
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{post.content}</p>
+              )}
+
+              {displayImage && (
+                <div className="relative w-full overflow-hidden rounded-lg border" style={{
+                  aspectRatio: dimensions[post.platform].aspectRatio.replace(':', '/')
+                }}>
+                  <Image
+                    src={displayImage}
+                    alt={post.imageHint}
+                    fill
+                    className="object-cover"
+                    data-ai-hint={post.imageHint}
+                    priority
+                    sizes="100vw"
+                  />
+                </div>
+              )}
+
+              <div className="text-xs text-muted-foreground pt-2">
+                {post.platform === 'Instagram' ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{metrics[post.platform][0].value}</span>
+                      <span>{metrics[post.platform][0].label}</span>
+                    </div>
+                    <div className="pt-1">
+                      <p className="text-xs">View all {metrics[post.platform][1].value} comments</p>
+                    </div>
+                  </div>
+                ) : post.platform === 'Facebook' ? (
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-3">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][0].value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][1].value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Share2 className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][2].value}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs">
+                      {metrics[post.platform][3].value} {metrics[post.platform][3].label}
+                    </div>
+                  </div>
+                ) : post.platform === 'Twitter' ? (
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][2].value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Repeat className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][1].value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][0].value}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs">
+                      {metrics[post.platform][3].value} {metrics[post.platform][3].label}
+                    </div>
+                  </div>
+                ) : post.platform === 'LinkedIn' ? (
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-3">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][0].value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][1].value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Share2 className="h-3 w-3" />
+                        <span className="text-xs">{metrics[post.platform][2].value}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs">
+                      {metrics[post.platform][3].value} {metrics[post.platform][3].label}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </CardContent>
+            <CardFooter className="bg-muted/50 p-3 flex flex-col items-start gap-3">
+              <div className="w-full">
+                <label htmlFor={`edits-${post.id}`} className="text-xs font-medium mb-1 block">
+                  Want changes? Tell the AI.
+                </label>
+                <Textarea
+                  id={`edits-${post.id}`}
+                  placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
+                  value={edits}
+                  onChange={e => setEdits(e.target.value)}
+                  className="bg-background text-sm"
+                  rows={2}
+                />
+              </div>
+              <div className="flex gap-2 w-full">
+                <Button
+                  onClick={handleRegenerateClick}
+                  disabled={isRegenerating}
+                  className="flex-1 text-sm"
+                  size="sm"
+                >
+                  {isRegenerating ? <Repeat className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                  {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+                </Button>
+                <Button onClick={handlePublishClick} variant="outline" className="flex-1 text-sm" size="sm">
+                  <Upload className="mr-1 h-3 w-3" />
+                  Publish
+                </Button>
+                <Button onClick={handleDeleteClick} variant="destructive" className="flex-1 text-sm" size="sm">
+                  <Trash2 className="mr-1 h-3 w-3" />
+                  Delete
+                </Button>
+              </div>
+            </CardFooter>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+    );
+  }
+
+  // Desktop view layout (original)
   return (
     <Card className="w-full max-w-2xl mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       <Collapsible open={isOpen} onOpenChange={onToggle}>
