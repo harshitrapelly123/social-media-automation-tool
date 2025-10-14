@@ -112,6 +112,13 @@ export default function DashboardClient({
             };
           });
           setPosts(newPosts);
+
+          // Prevent auto-scroll by setting focus to body after posts are loaded
+          setTimeout(() => {
+            if (document.body) {
+              document.body.focus();
+            }
+          }, 100);
         })
         .catch(e => {
           console.error(e);

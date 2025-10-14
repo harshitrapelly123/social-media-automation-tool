@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { Post, platformDimensions, defaultEngagementMetrics } from '@/lib/types';
 import { platformDimensions as dimensions, defaultEngagementMetrics as metrics } from '@/lib/types';
-import { Sparkles, Repeat, MessageCircle, Heart, Share2, Upload, Trash2, ChevronDown } from 'lucide-react';
+import { Sparkles, Repeat, MessageCircle, Heart, Share2, Upload, ChevronDown } from 'lucide-react';
 
 // Social media platform icons - matching the reference image
 const platformIcons = {
@@ -67,9 +67,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
     onPublish(post);
   };
 
-  const handleDeleteClick = () => {
-    onDelete(post.id);
-  };
+
   
   const isContentLoading = post.content === '...';
   const displayImage = globalImageUri || post.image;
@@ -80,7 +78,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
       <Card className="w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <Collapsible open={isOpen} onOpenChange={onToggle}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="flex flex-row items-center justify-between space-x-0 p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardHeader className="flex flex-row items-start justify-between space-x-0 p-3 cursor-pointer hover:bg-muted/50 transition-colors">
               <div className="flex flex-row items-center space-x-3 flex-1">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={post.author.avatar} alt={post.author.name} />
@@ -105,12 +103,31 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                   ) : (
                     <p className="font-semibold text-sm truncate">{post.author.name}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">{post.platform} Post</p>
+
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
-                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isOpen && "transform rotate-180")} />
-              </Button>
+              <div className="flex items-center gap-1 ml-2">
+                <Button
+                  onClick={handleRegenerateClick}
+                  disabled={isRegenerating}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                >
+                  {isRegenerating ? <Repeat className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                </Button>
+                <Button
+                  onClick={handlePublishClick}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                >
+                  <Upload className="h-3 w-3" />
+                </Button>
+                <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                  <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", isOpen && "transform rotate-180")} />
+                </Button>
+              </div>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -243,10 +260,6 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                   <Upload className="mr-1 h-3 w-3" />
                   Publish
                 </Button>
-                <Button onClick={handleDeleteClick} variant="destructive" className="flex-1 text-sm" size="sm">
-                  <Trash2 className="mr-1 h-3 w-3" />
-                  Delete
-                </Button>
               </div>
             </CardFooter>
           </CollapsibleContent>
@@ -260,7 +273,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
     <Card className="w-full max-w-2xl mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       <Collapsible open={isOpen} onOpenChange={onToggle}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="flex flex-row items-center justify-between space-x-0 p-4 cursor-pointer hover:bg-muted/50 transition-colors">
+          <CardHeader className="flex flex-row items-start justify-between space-x-0 p-4 cursor-pointer hover:bg-muted/50 transition-colors">
             <div className="flex flex-row items-center space-x-4 flex-1">
               <Avatar>
                 <AvatarImage src={post.author.avatar} alt={post.author.name} />
@@ -285,15 +298,34 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                 ) : (
                   <p className="font-semibold">{post.author.name}</p>
                 )}
-                <p className="text-sm text-muted-foreground">{post.platform} Post</p>
+
                 <p className="text-xs text-muted-foreground mt-1">
                   Recommended: {dimensions[post.platform].recommended} • {dimensions[post.platform].aspectRatio}
                 </p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
-              <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "transform rotate-180")} />
-            </Button>
+            <div className="flex items-center gap-2 ml-4">
+              <Button
+                onClick={handleRegenerateClick}
+                disabled={isRegenerating}
+                variant="outline"
+                size="sm"
+                className="h-8"
+              >
+                {isRegenerating ? <Repeat className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+              </Button>
+              <Button
+                onClick={handlePublishClick}
+                variant="outline"
+                size="sm"
+                className="h-8"
+              >
+                <Upload className="h-3 w-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "transform rotate-180")} />
+              </Button>
+            </div>
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -398,36 +430,30 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
               ) : null}
             </div>
           </CardContent>
-          <CardFooter className="bg-muted/50 p-4 flex flex-col items-start gap-4">
-            <div className="w-full">
-              <label htmlFor={`edits-${post.id}`} className="text-sm font-medium mb-2 block">
-                Want changes? Tell the AI.
-              </label>
-              <Textarea
-                id={`edits-${post.id}`}
-                placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
-                value={edits}
-                onChange={e => setEdits(e.target.value)}
-                className="bg-background"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-2">
-              <Button
-                onClick={handleRegenerateClick}
-                disabled={isRegenerating}
-                className="w-full"
-              >
-                {isRegenerating ? <Repeat className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-              </Button>
-              <Button onClick={handlePublishClick} variant="outline" className="w-full">
-                <Upload className="mr-2 h-4 w-4" />
-                Publish
-              </Button>
-              <Button onClick={handleDeleteClick} variant="destructive" className="w-full">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
+          <CardFooter className="bg-muted/50 p-4">
+            <div className="w-full space-y-3">
+              <div>
+                <label htmlFor={`edits-${post.id}`} className="text-sm font-medium mb-2 block">
+                  Want changes? Tell the AI.
+                </label>
+                <Textarea
+                  id={`edits-${post.id}`}
+                  placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
+                  value={edits}
+                  onChange={e => setEdits(e.target.value)}
+                  className="bg-background"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleRegenerateClick}
+                  disabled={isRegenerating}
+                  className="w-auto"
+                >
+                  {isRegenerating ? <Repeat className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                  {isRegenerating ? 'Regenerating...' : 'Regenerate with Changes'}
+                </Button>
+              </div>
             </div>
           </CardFooter>
         </CollapsibleContent>
