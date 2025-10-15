@@ -11,7 +11,7 @@ import placeholderData from '@/lib/placeholder-images.json';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -374,8 +374,22 @@ export default function DashboardClient({
   const editingPost = editingPostId ? posts.find(p => p.id === editingPostId) : null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-      <div className="md:col-span-2 space-y-8">
+    <div className="space-y-6">
+      {/* Back Button */}
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Back</span>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        <div className="md:col-span-2 space-y-8">
         {/* View Mode Toggle */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -455,11 +469,11 @@ export default function DashboardClient({
             onStartEditing={handleStartEditing}
           />
         ))}
-      </div>
+        </div>
 
-      {/* Editing Panel */}
-      {editingPost && editingMode && (
-        <div className="md:col-span-1">
+        {/* Editing Panel */}
+        {editingPost && editingMode && (
+          <div className="md:col-span-1">
           <Card className="sticky top-4">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -550,8 +564,9 @@ export default function DashboardClient({
               )}
             </CardContent>
           </Card>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

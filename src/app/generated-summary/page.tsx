@@ -19,9 +19,9 @@ import {
   Instagram,
   Facebook,
   CheckCircle,
-  ArrowLeft,
   Copy,
-  Share2
+  Share2,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function GeneratedSummaryPage() {
@@ -203,49 +203,56 @@ The future holds immense potential for those ready to embrace these innovations.
         <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
-      <div className="relative z-10 flex w-full h-full">
-        {/* Left Side - Summary Content (80%) */}
-        <div className="w-4/5 flex flex-col">
-          {/* Simplified Header */}
-          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 backdrop-blur-sm md:px-6 lg:px-8">
-            <div className="flex items-center gap-2 mr-4">
-              <div className="h-8 w-8 md:h-10 md:w-10">
-                <PostAutomationPlatformIcon />
-              </div>
-              <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
-                Post Automation Platform
-              </span>
-            </div>
+      {/* Full Width Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 backdrop-blur-sm md:px-6 lg:px-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Back</span>
+        </Button>
 
-            <nav className="flex items-center gap-2 overflow-x-auto">
-              <Button
-                variant="ghost"
-                asChild
-                className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
-              >
-                <Link href="/create-post">Create Post</Link>
-              </Button>
-              <Button
-                variant="ghost"
-                asChild
-                className="whitespace-nowrap transition-all duration-300"
-              >
-                <Link href="/topics">Topics</Link>
-              </Button>
-              <Button
-                variant="ghost"
-                asChild
-                className="whitespace-nowrap transition-all duration-300"
-              >
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-            </nav>
+        <div className="flex items-center gap-2 mr-4">
+          <div className="h-8 w-8 md:h-10 md:w-10">
+            <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+            Post Automation Platform
+          </span>
+        </div>
 
-            <div className="ml-auto">
-              <ThemeToggle />
-            </div>
-          </header>
+        <nav className="flex items-center gap-2 overflow-x-auto">
+          <Button
+            variant="ghost"
+            asChild
+            className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
+          >
+            <Link href="/dashboard">Generator</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            asChild
+            className="whitespace-nowrap transition-all duration-300"
+          >
+            <Link href="/dashboard/analytics">Analytics</Link>
+          </Button>
+        </nav>
 
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <div className="relative z-10 flex w-full h-full mt-16">
+        {/* Main Content Area - Full Width Initially */}
+        <div className={`${selectedTopics.length > 0 && generatedSummary ? 'w-4/5' : 'w-full'} flex flex-col transition-all duration-500`}>
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-6" style={{ scrollbarWidth: 'none' }}>
             <div className="max-w-4xl space-y-6">
@@ -427,100 +434,102 @@ The future holds immense potential for those ready to embrace these innovations.
           </div>
         </div>
 
-        {/* Right Side - Platform Selection (20%) */}
-        <div className="w-1/5 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-l border-slate-200 dark:border-slate-700 flex flex-col">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-              Choose Platforms
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Select where to share your summary
-            </p>
-          </div>
+        {/* Platform Selection - Shows only after content is generated */}
+        {selectedTopics.length > 0 && generatedSummary && (
+          <div className="w-1/5 flex flex-col">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+                Choose Platforms
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Select where to share your summary
+              </p>
+            </div>
 
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-            <div className="space-y-3">
-              {platforms.map((platform) => {
-                const Icon = platform.icon;
-                const isSelected = selectedPlatforms.includes(platform.id);
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+              <div className="space-y-3">
+                {platforms.map((platform) => {
+                  const Icon = platform.icon;
+                  const isSelected = selectedPlatforms.includes(platform.id);
 
-                return (
-                  <div
-                    key={platform.id}
-                    className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 ${
-                      isSelected ? 'transform scale-105' : ''
-                    }`}
-                    onClick={() => handlePlatformToggle(platform.id)}
-                  >
-                    <div className={`p-3 rounded-lg border-2 transition-all duration-300 ${
-                      isSelected
-                        ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
-                        : 'bg-white/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-600'
-                    }`}>
-                      <div className="flex items-center space-x-3">
-                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-slate-500'
-                        }`}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <h3 className={`font-semibold text-sm transition-colors duration-300 truncate ${
-                            isSelected ? 'text-slate-800 dark:text-slate-200' : 'text-slate-800 dark:text-slate-200'
+                  return (
+                    <div
+                      key={platform.id}
+                      className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 ${
+                        isSelected ? 'transform scale-105' : ''
+                      }`}
+                      onClick={() => handlePlatformToggle(platform.id)}
+                    >
+                      <div className={`p-3 rounded-lg border-2 transition-all duration-300 ${
+                        isSelected
+                          ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                          : 'bg-white/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-600'
+                      }`}>
+                        <div className="flex items-center space-x-3">
+                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                            isSelected
+                              ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+                              : 'bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-slate-500'
                           }`}>
-                            {platform.name}
-                          </h3>
-                          <p className={`text-xs transition-colors duration-300 ${
-                            isSelected ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'
-                          }`}>
-                            {isSelected ? 'Selected' : 'Click to select'}
-                          </p>
-                        </div>
-
-                        {/* Selection Indicator */}
-                        {isSelected && (
-                          <div className="flex-shrink-0">
-                            <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
+                            <Icon className="w-5 h-5" />
                           </div>
-                        )}
+
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`font-semibold text-sm transition-colors duration-300 truncate ${
+                              isSelected ? 'text-slate-800 dark:text-slate-200' : 'text-slate-800 dark:text-slate-200'
+                            }`}>
+                              {platform.name}
+                            </h3>
+                            <p className={`text-xs transition-colors duration-300 ${
+                              isSelected ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'
+                            }`}>
+                              {isSelected ? 'Selected' : 'Click to select'}
+                            </p>
+                          </div>
+
+                          {/* Selection Indicator */}
+                          {isSelected && (
+                            <div className="flex-shrink-0">
+                              <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+
+                {/* Selection Summary */}
+                {selectedPlatforms.length > 0 && (
+                  <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      ✨ Ready to share on {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''}: {selectedPlatforms.join(', ')}
+                    </p>
                   </div>
-                );
-              })}
+                )}
+              </div>
+            </div>
 
-              {/* Selection Summary */}
-              {selectedPlatforms.length > 0 && (
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
-                    ✨ Ready to share on {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''}: {selectedPlatforms.join(', ')}
-                  </p>
-                </div>
-              )}
+            {/* Bottom Actions */}
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleShareToPlatforms}
+                  disabled={selectedPlatforms.length === 0}
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-8 py-4 text-lg font-semibold rounded-full"
+                >
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Approve and Create Posts
+                </Button>
+              </div>
             </div>
           </div>
-
-          {/* Bottom Actions */}
-          <div className="p-6 border-t border-slate-200 dark:border-slate-700">
-            <div className="flex justify-center">
-              <Button
-                onClick={handleShareToPlatforms}
-                disabled={selectedPlatforms.length === 0}
-                size="lg"
-                className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-8 py-4 text-lg font-semibold rounded-full"
-              >
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Approve and Create Posts
-              </Button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
