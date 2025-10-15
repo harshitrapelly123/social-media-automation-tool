@@ -520,7 +520,7 @@ The future holds immense potential for those ready to embrace these innovations.
                 {selectedPlatforms.length > 0 && (
                   <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <p className="text-xs text-blue-800 dark:text-blue-200">
-                      ✨ Ready to share on {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''}: {selectedPlatforms.join(', ')}
+                      ✨ Ready to create posts on {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''}: {selectedPlatforms.join(', ')}
                     </p>
                   </div>
                 )}

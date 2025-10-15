@@ -133,32 +133,32 @@ export default function CreatePostPage() {
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto px-2 pb-6">
-          <div className="max-w-3xl mx-auto">
+        <div className="flex-1 px-2 pb-6 overflow-hidden">
+          <div className="max-w-3xl mx-auto h-full flex flex-col">
             {/* Header Section */}
-            <div className="text-center py-8 mb-2">
-              
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent mb-4">
+            <div className="text-center py-4 mb-2 flex-shrink-0">
+
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent mb-2">
                 Select Your Topics
               </h1>
-              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
                 Select your topics and generate engaging summaries with AI
               </p>
             </div>
 
             {/* Card Section */}
-            <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50">
+            <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 flex-1 flex flex-col min-h-0">
               <CardHeader className="text-center pb-0">
                 
               </CardHeader>
 
-              <CardContent className="space-y-6">
+              <CardContent className="flex-1 overflow-y-auto space-y-4 p-4">
                 {/* Topics Grid */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                <div className="space-y-3">
+                  <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
                     {addedTopics.length > 0 ? 'All Topics' : 'Trending Topics'}
                   </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
                     {allTopics.map((topic, index) => (
                       <div
                         key={index}
@@ -170,7 +170,7 @@ export default function CreatePostPage() {
                         onClick={() => handleTopicToggle(topic)}
                       >
                         <div
-                          className={`relative p-4 rounded-xl border-2 transition-all duration-300 overflow-hidden ${
+                          className={`relative p-2 md:p-3 rounded-lg border-2 transition-all duration-300 overflow-hidden ${
                             selectedTopics.includes(topic)
                               ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-lg shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
                               : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/30 dark:hover:bg-slate-600'
@@ -181,7 +181,7 @@ export default function CreatePostPage() {
                           )}
                           <div className="relative">
                             <span
-                              className={`font-medium transition-colors duration-300 block ${
+                              className={`font-medium transition-colors duration-300 block text-sm ${
                                 selectedTopics.includes(topic)
                                   ? 'text-slate-800 dark:text-slate-200'
                                   : 'text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400'
