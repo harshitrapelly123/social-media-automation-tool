@@ -35,7 +35,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       <div className="relative z-10 flex flex-col h-full">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 backdrop-blur-sm md:px-6 lg:px-8">
-          <Link href="/dashboard" className="flex items-center gap-2 mr-4">
+          <Link href="/" className="flex items-center gap-2 mr-4">
             <div className="h-8 w-8 md:h-10 md:w-10">
               <PostAutomationPlatformIcon />
             </div>

@@ -60,7 +60,7 @@ export default function TopicsPage() {
               asChild
               className="whitespace-nowrap transition-all duration-300"
             >
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/">Dashboard</Link>
             </Button>
           </nav>
 

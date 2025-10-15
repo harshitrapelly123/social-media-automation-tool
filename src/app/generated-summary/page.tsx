@@ -232,13 +232,13 @@ The future holds immense potential for those ready to embrace these innovations.
         </div>
 
         <nav className="flex items-center gap-2 overflow-x-auto">
-          <Button
-            variant="ghost"
-            asChild
-            className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
-          >
-            <Link href="/dashboard">Generator</Link>
-          </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
+            >
+              <Link href="/">Generator</Link>
+            </Button>
           <Button
             variant="ghost"
             asChild

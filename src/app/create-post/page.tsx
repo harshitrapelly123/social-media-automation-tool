@@ -116,7 +116,7 @@ export default function CreatePostPage() {
               asChild
               className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
             >
-              <Link href="/dashboard">Generator</Link>
+              <Link href="/">Generator</Link>
             </Button>
             <Button
               variant="ghost"
