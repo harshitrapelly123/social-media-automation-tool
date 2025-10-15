@@ -195,7 +195,7 @@ The future holds immense potential for those ready to embrace these innovations.
   ];
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse" />
@@ -250,9 +250,9 @@ The future holds immense potential for those ready to embrace these innovations.
         </div>
       </header>
 
-      <div className="relative z-10 flex w-full h-full mt-16 gap-4">
+      <div className="relative z-10 flex w-full h-full mt-16 gap-3 pb-4 overflow-hidden">
         {/* Main Content Area - Full Width Initially */}
-        <div className={`${selectedTopics.length > 0 && generatedSummary ? 'w-3/4' : 'w-full'} flex flex-col transition-all duration-500`}>
+        <div className={`${selectedTopics.length > 0 && generatedSummary ? 'w-2/3' : 'w-full'} flex flex-col transition-all duration-500`}>
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarWidth: 'none' }}>
             <div className="max-w-4xl mx-auto space-y-6">
@@ -294,8 +294,8 @@ The future holds immense potential for those ready to embrace these innovations.
               </Card>
 
               {/* Summary Card */}
-              <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-xl">
-                <CardHeader className="pb-4">
+              <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-xl flex flex-col h-[calc(100vh-16rem)] mb-8">
+                <CardHeader className="pb-4 flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="text-xl flex items-center space-x-2">
@@ -357,16 +357,16 @@ The future holds immense potential for those ready to embrace these innovations.
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 flex-1 overflow-y-auto">
                   {isEditing ? (
                     <Textarea
                       value={editedSummary}
                       onChange={(e) => setEditedSummary(e.target.value)}
-                      className="min-h-[400px] text-base border-2 border-slate-200 dark:border-slate-600 focus:border-blue-500 bg-white dark:bg-slate-700 resize-none"
+                      className="h-full text-base border-2 border-slate-200 dark:border-slate-600 focus:border-blue-500 bg-white dark:bg-slate-700 resize-none"
                       placeholder="Edit your summary..."
                     />
                   ) : isLoading ? (
-                    <div className="min-h-[400px] p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg space-y-4">
+                    <div className="h-full p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg space-y-4">
                       <div className="flex items-center space-x-3 mb-6">
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full animate-pulse" />
                         <div className="h-6 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 rounded animate-pulse w-48" />
@@ -422,9 +422,17 @@ The future holds immense potential for those ready to embrace these innovations.
                       </div>
                     </div>
                   ) : (
-                    <div className="prose prose-lg max-w-none">
-                      <div className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed min-h-[400px] p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-fade-in">
+                    <div className="prose prose-lg max-w-none h-full">
+                      <div className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed h-full p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-fade-in">
                         {generatedSummary}
+                      </div>
+                      {/* End indicator */}
+                      <div className="flex justify-center mt-8 mb-8">
+                        <div className="flex items-center space-x-3 text-slate-400 dark:text-slate-500">
+                          <div className="w-12 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+                          <span className="text-sm font-medium">End of Summary</span>
+                          <div className="w-12 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -436,20 +444,20 @@ The future holds immense potential for those ready to embrace these innovations.
 
         {/* Platform Selection - Shows only after content is generated */}
         {selectedTopics.length > 0 && generatedSummary && (
-          <div className="w-1/4 flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="w-1/4 flex flex-col h-[calc(100vh-8rem)]">
+            <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
               <div className="text-center">
-                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">
+                <h2 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Choose Platforms
                 </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
+                <p className="text-xs text-slate-600 dark:text-slate-300">
                   Select where to share your summary
                 </p>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
-              <div className="space-y-3 max-w-sm mx-auto">
+            <div className="flex-1 overflow-y-auto p-2" style={{ scrollbarWidth: 'none' }} >
+              <div className="space-y-2 max-w-sm mx-auto">
                 {platforms.map((platform) => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatforms.includes(platform.id);
@@ -462,22 +470,22 @@ The future holds immense potential for those ready to embrace these innovations.
                       }`}
                       onClick={() => handlePlatformToggle(platform.id)}
                     >
-                      <div className={`p-3 rounded-lg border-2 transition-all duration-300 ${
+                      <div className={`p-2 rounded-lg border-2 transition-all duration-300 ${
                         isSelected
                           ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
                           : 'bg-white/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-600'
                       }`}>
-                        <div className="flex items-center space-x-3">
-                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        <div className="flex items-center space-x-2">
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                             isSelected
                               ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
                               : 'bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-slate-500'
                           }`}>
-                            <Icon className="w-5 h-5" />
+                            <Icon className="w-4 h-4" />
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <h3 className={`font-semibold text-sm transition-colors duration-300 truncate ${
+                            <h3 className={`font-semibold text-xs transition-colors duration-300 truncate ${
                               isSelected ? 'text-slate-800 dark:text-slate-200' : 'text-slate-800 dark:text-slate-200'
                             }`}>
                               {platform.name}
@@ -492,8 +500,8 @@ The future holds immense potential for those ready to embrace these innovations.
                           {/* Selection Indicator */}
                           {isSelected && (
                             <div className="flex-shrink-0">
-                              <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <div className="w-4 h-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               </div>
@@ -507,8 +515,8 @@ The future holds immense potential for those ready to embrace these innovations.
 
                 {/* Selection Summary */}
                 {selectedPlatforms.length > 0 && (
-                  <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs text-blue-800 dark:text-blue-200">
                       ✨ Ready to share on {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''}: {selectedPlatforms.join(', ')}
                     </p>
                   </div>
@@ -517,15 +525,15 @@ The future holds immense potential for those ready to embrace these innovations.
             </div>
 
             {/* Bottom Actions */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="p-3 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
               <div className="flex justify-center">
                 <Button
                   onClick={handleShareToPlatforms}
                   disabled={selectedPlatforms.length === 0}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-6 py-3 text-base font-semibold rounded-full w-full max-w-xs"
+                  className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-4 py-2 text-sm font-semibold rounded-full w-full max-w-xs"
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <CheckCircle className="w-3 h-3 mr-1" />
                   Approve and Create Posts
                 </Button>
               </div>
