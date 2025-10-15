@@ -250,12 +250,12 @@ The future holds immense potential for those ready to embrace these innovations.
         </div>
       </header>
 
-      <div className="relative z-10 flex w-full h-full mt-16">
+      <div className="relative z-10 flex w-full h-full mt-16 gap-4">
         {/* Main Content Area - Full Width Initially */}
-        <div className={`${selectedTopics.length > 0 && generatedSummary ? 'w-4/5' : 'w-full'} flex flex-col transition-all duration-500`}>
+        <div className={`${selectedTopics.length > 0 && generatedSummary ? 'w-3/4' : 'w-full'} flex flex-col transition-all duration-500`}>
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-6" style={{ scrollbarWidth: 'none' }}>
-            <div className="max-w-4xl space-y-6">
+          <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarWidth: 'none' }}>
+            <div className="max-w-4xl mx-auto space-y-6">
               {/* Selected Topics */}
               <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-lg">
                 <CardHeader className="pb-4">
@@ -436,18 +436,20 @@ The future holds immense potential for those ready to embrace these innovations.
 
         {/* Platform Selection - Shows only after content is generated */}
         {selectedTopics.length > 0 && generatedSummary && (
-          <div className="w-1/5 flex flex-col">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-                Choose Platforms
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Select where to share your summary
-              </p>
+          <div className="w-1/4 flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="text-center">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">
+                  Choose Platforms
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Select where to share your summary
+                </p>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-              <div className="space-y-3">
+            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
+              <div className="space-y-3 max-w-sm mx-auto">
                 {platforms.map((platform) => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatforms.includes(platform.id);
@@ -515,15 +517,15 @@ The future holds immense potential for those ready to embrace these innovations.
             </div>
 
             {/* Bottom Actions */}
-            <div className="p-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700">
               <div className="flex justify-center">
                 <Button
                   onClick={handleShareToPlatforms}
                   disabled={selectedPlatforms.length === 0}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-8 py-4 text-lg font-semibold rounded-full"
+                  className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-6 py-3 text-base font-semibold rounded-full w-full max-w-xs"
                 >
-                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <CheckCircle className="w-4 h-4 mr-2" />
                   Approve and Create Posts
                 </Button>
               </div>
