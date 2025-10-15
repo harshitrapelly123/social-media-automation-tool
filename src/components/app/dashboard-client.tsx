@@ -20,7 +20,7 @@ import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 
 
-const platforms: Platform[] = ['Facebook', 'Twitter', 'Instagram', 'LinkedIn'];
+const allPlatforms: Platform[] = ['Facebook', 'Twitter', 'Instagram', 'LinkedIn'];
 const { placeholderImages } = placeholderData;
 const defaultTopics: Topic[] = ['Technology', 'Health & Wellness'];
 
@@ -84,6 +84,30 @@ export default function DashboardClient({
   const [editingMode, setEditingMode] = useState<'text' | 'image' | null>(null);
   const [editingDescription, setEditingDescription] = useState('');
 
+  // Get selected platforms from localStorage or use all platforms as fallback
+  const platforms = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const savedPlatforms = localStorage.getItem('dashboardSelectedPlatforms');
+      if (savedPlatforms) {
+        try {
+          const parsedPlatforms = JSON.parse(savedPlatforms);
+          if (parsedPlatforms.length > 0) {
+            // Convert platform IDs to Platform type
+            const platformMap: Record<string, Platform> = {
+              'twitter': 'Twitter',
+              'linkedin': 'LinkedIn',
+              'instagram': 'Instagram',
+              'facebook': 'Facebook'
+            };
+            return parsedPlatforms.map((id: string) => platformMap[id]).filter(Boolean) as Platform[];
+          }
+        } catch (error) {
+          console.warn('Error parsing selected platforms from localStorage:', error);
+        }
+      }
+    }
+    return allPlatforms;
+  }, []);
 
   const isGeneratorPage = pathname === '/dashboard';
 
@@ -474,7 +498,7 @@ export default function DashboardClient({
         {/* Editing Panel */}
         {editingPost && editingMode && (
           <div className="md:col-span-1">
-          <Card className="sticky top-4">
+          <Card className="sticky top-24">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Edit {editingPost.platform} Post</CardTitle>

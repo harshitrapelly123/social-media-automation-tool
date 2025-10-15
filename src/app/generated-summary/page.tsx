@@ -181,6 +181,9 @@ The future holds immense potential for those ready to embrace these innovations.
         selectedPlatforms,
         timestamp: new Date().toISOString()
       }));
+
+      // Save selected platforms for dashboard post generation
+      localStorage.setItem('dashboardSelectedPlatforms', JSON.stringify(selectedPlatforms));
     }
 
     // Redirect to dashboard
