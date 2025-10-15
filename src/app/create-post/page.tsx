@@ -136,12 +136,10 @@ export default function CreatePostPage() {
         <div className="flex-1 overflow-y-auto px-2 pb-6">
           <div className="max-w-3xl mx-auto">
             {/* Header Section */}
-            <div className="text-center py-8 mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-6 shadow-xl">
-                <Wand2 className="w-10 h-10 text-white" />
-              </div>
+            <div className="text-center py-8 mb-2">
+              
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent mb-4">
-                Create Post
+                Select Your Topics
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
                 Select your topics and generate engaging summaries with AI
@@ -150,10 +148,8 @@ export default function CreatePostPage() {
 
             {/* Card Section */}
             <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50">
-              <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-200 dark:to-slate-400 bg-clip-text text-transparent">
-                  Select Your Topics
-                </CardTitle>
+              <CardHeader className="text-center pb-0">
+                
               </CardHeader>
 
               <CardContent className="space-y-6">
