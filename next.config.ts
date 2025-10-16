@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'dalleprodsec.blob.core.windows.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

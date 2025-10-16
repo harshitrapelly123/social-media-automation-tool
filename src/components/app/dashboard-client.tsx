@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { generateInitialPosts } from '@/ai/flows/generate-initial-posts';
 import { regeneratePostWithEdits } from '@/ai/flows/regenerate-post-with-edits';
 import type { Post, Platform, Topic } from '@/lib/types';
@@ -18,6 +19,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/app/theme-toggle';
+import { PostService } from '@/lib/services/postService';
 
 
 const allPlatforms: Platform[] = ['Facebook', 'Twitter', 'Instagram', 'LinkedIn'];
@@ -83,6 +86,43 @@ export default function DashboardClient({
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingMode, setEditingMode] = useState<'text' | 'image' | null>(null);
   const [editingDescription, setEditingDescription] = useState('');
+  const [isGeneratingEdit, setIsGeneratingEdit] = useState(false);
+
+  // Store platform IDs for API calls
+  const [platformIds, setPlatformIds] = useState<{[key: string]: string}>({});
+
+  // Initialize platform IDs and summary ID from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Get summary ID from generated summary data (keeping for backward compatibility)
+      const generatedSummaryData = localStorage.getItem('generatedSummaryData');
+      if (generatedSummaryData) {
+        try {
+          const parsed = JSON.parse(generatedSummaryData);
+          // Keep for backward compatibility but not used in regeneration
+          console.log('Summary ID available:', parsed.summaryId || '');
+        } catch (error) {
+          console.warn('Error parsing generatedSummaryData:', error);
+        }
+      }
+
+      // Get platform IDs from dashboard platform content
+      const platformContentData = localStorage.getItem('dashboardPlatformContent');
+      if (platformContentData) {
+        try {
+          const parsed = JSON.parse(platformContentData);
+          const ids: {[key: string]: string} = {};
+          parsed.platforms?.forEach((platform: any) => {
+            const platformKey = platform.platform_name.toLowerCase();
+            ids[platformKey] = platform.platform_id || platform.id || '';
+          });
+          setPlatformIds(ids);
+        } catch (error) {
+          console.warn('Error parsing platform content data:', error);
+        }
+      }
+    }
+  }, []);
 
   // Get selected platforms from localStorage or use all platforms as fallback
   const platforms = useMemo(() => {
@@ -115,16 +155,99 @@ export default function DashboardClient({
     if (isUserLoading) {
       return; // Wait until user auth state is resolved
     }
-    if (!user) {
-      router.push('/login');
-      return;
-    }
 
-    if (isGeneratorPage && posts.length === 0) {
-      setLoading(true);
-      setError(null);
-      generateInitialPosts({ topics, platforms })
-        .then(result => {
+    // Check authentication via cookies
+    const checkAuthAndLoad = async () => {
+      if (typeof window !== 'undefined') {
+        const token = document.cookie.split(';').find(row => row.trim().startsWith('token='))?.split('=')[1];
+        const accessToken = document.cookie.split(';').find(row => row.trim().startsWith('access_token='))?.split('=')[1];
+
+        console.log('Dashboard auth check:', {
+          hasToken: !!token,
+          hasAccessToken: !!accessToken,
+          userExists: !!user,
+          isUserLoading
+        });
+
+        if (!token && !accessToken && !user) {
+          console.log('No authentication found, redirecting to login');
+          router.push('/login');
+          return;
+        }
+      }
+
+      if (isGeneratorPage && posts.length === 0) {
+        setLoading(true);
+        setError(null);
+
+        // Check if we have platform content data from the approval process
+        if (typeof window !== 'undefined') {
+          const platformContentData = localStorage.getItem('dashboardPlatformContent');
+          if (platformContentData) {
+            try {
+              const contentData = JSON.parse(platformContentData);
+              console.log('Using platform content data from localStorage:', contentData);
+
+              // Convert platform content to posts format and extract summary_id
+              const newPosts: Post[] = contentData.platforms.map((platform: any) => {
+                // Map platform names to match the expected format
+                const platformNameMap: Record<string, Platform> = {
+                  'twitter': 'Twitter',
+                  'facebook': 'Facebook',
+                  'instagram': 'Instagram',
+                  'linkedin': 'LinkedIn'
+                };
+
+                const platformName = platformNameMap[platform.platform_name.toLowerCase()] || platform.platform_name;
+
+                return {
+                  id: `${platform.platform_name.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  platform: platformName as Platform,
+                  content: platform.post_text,
+                  image: platform.image_url,
+                  imageHint: `Post for ${platform.platform_name}`,
+                  author: {
+                    name: user?.displayName || 'Post Automation Platform User',
+                    avatar: user?.photoURL || 'https://picsum.photos/seed/user/40/40',
+                  },
+                };
+              });
+
+              // Log summary_id availability for debugging (not used in regeneration)
+              console.log('Summary IDs available in response:', contentData.platforms?.map((p: any) => ({
+                platform: p.platform_name,
+                summary_id: p.summary_id
+              })).filter((p: any) => p.summary_id));
+
+              setPosts(newPosts);
+              setLoading(false);
+
+              // Clear the platform content data after using it
+              localStorage.removeItem('dashboardPlatformContent');
+
+              // Prevent auto-scroll by setting focus to body after posts are loaded
+              setTimeout(() => {
+                if (document.body) {
+                  document.body.focus();
+                }
+              }, 100);
+
+              toast({
+                title: 'Posts Loaded Successfully!',
+                description: `Loaded ${newPosts.length} posts from approved content.`,
+              });
+
+              return;
+            } catch (error) {
+              console.warn('Error parsing platform content data:', error);
+            }
+          }
+        }
+
+        // Fallback to generating initial posts if no platform content data
+        console.log('No platform content data found, generating initial posts');
+        try {
+          const result = await generateInitialPosts({ topics, platforms });
           const newPosts: Post[] = result.posts.map((p, index) => {
             const randomImage = placeholderImages[index % placeholderImages.length];
             return {
@@ -134,8 +257,8 @@ export default function DashboardClient({
               image: randomImage.imageUrl,
               imageHint: randomImage.imageHint,
               author: {
-                name: user.displayName || 'Post Automation Platform User',
-                avatar: user.photoURL || 'https://picsum.photos/seed/user/40/40',
+                name: user?.displayName || 'Post Automation Platform User',
+                avatar: user?.photoURL || 'https://picsum.photos/seed/user/40/40',
               },
             };
           });
@@ -147,8 +270,7 @@ export default function DashboardClient({
               document.body.focus();
             }
           }, 100);
-        })
-        .catch(e => {
+        } catch (e) {
           console.error(e);
           const errorMessage =
             e instanceof Error
@@ -162,13 +284,15 @@ export default function DashboardClient({
             title: 'Generation Error',
             description: errorMessage,
           });
-        })
-        .finally(() => {
+        } finally {
           setLoading(false);
-        });
-    } else {
+        }
+      } else {
         setLoading(false);
-    }
+      }
+    };
+
+    checkAuthAndLoad();
   }, [isUserLoading, user, isGeneratorPage, topics, router, toast, posts.length]);
 
 
@@ -280,29 +404,41 @@ export default function DashboardClient({
     if (postIndex === -1) return;
 
     const originalPost = posts[postIndex];
+    const platformKey = originalPost.platform.toLowerCase();
+
+    setIsGeneratingEdit(true);
 
     try {
       if (editingMode === 'text') {
-        // Handle text editing
+        // Handle text editing with API call
         setPosts(prev =>
           prev.map(p => (p.id === editingPostId ? { ...p, content: 'Generating content...' } : p))
         );
 
         try {
-          const result = await regeneratePostWithEdits({
-            originalPost: originalPost.content,
-            userEdits: editingDescription,
-            topic: topics[0] || 'general',
-            platform: originalPost.platform,
-            imageUri: undefined,
+          // Get platform ID for the current post
+          const platformId = platformIds[platformKey];
+
+          if (!platformId) {
+            throw new Error(`Platform ID not found for ${originalPost.platform}`);
+          }
+
+          console.log('Calling regeneratePostText with:', {
+            platformId: platformId,
+            userSuggestions: editingDescription,
+            contentType: 'post'
           });
+
+          const response = await PostService.regeneratePostText(platformId, editingDescription);
+
+          console.log('regeneratePostText response:', response);
 
           setPosts(prev =>
             prev.map(p =>
               p.id === editingPostId
                 ? {
                     ...originalPost,
-                    content: result.regeneratedPost,
+                    content: response.regenerated_content,
                   }
                 : p
             )
@@ -312,36 +448,128 @@ export default function DashboardClient({
             title: 'Content Updated!',
             description: `Post content has been updated based on your instructions.`,
           });
-        } catch (fetchError) {
-          console.error('AI Service Error:', fetchError);
+        } catch (error: any) {
+          console.error('Text regeneration error details:', {
+            error: error,
+            message: error?.message,
+            response: error?.response,
+            status: error?.response?.status,
+            data: error?.response?.data,
+            stack: error?.stack
+          });
 
-          // Provide a fallback response when AI service is unavailable
-          const fallbackContent = `${originalPost.content}\n\n[Updated based on your request: ${editingDescription}]`;
+          let errorMessage = 'Could not update post content. Please try again.';
+
+          if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network Error')) {
+            errorMessage = 'Cannot connect to server. Please check if your backend is running.';
+          } else if (error?.response?.status === 404) {
+            errorMessage = 'API endpoint not found. Please check your backend configuration.';
+          } else if (error?.response?.status === 422) {
+            errorMessage = 'Invalid data provided. Please check your input and try again.';
+          } else if (error?.response?.status >= 500) {
+            errorMessage = 'Server error. Please check your backend logs.';
+          } else if (error?.response?.data?.detail) {
+            errorMessage = error.response.data.detail || errorMessage;
+          } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message || errorMessage;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'string') {
+            errorMessage = error;
+          } else {
+            errorMessage = 'An unknown error occurred. Please check the console for details.';
+          }
+
+          toast({
+            variant: 'destructive',
+            title: 'Content Update Failed',
+            description: errorMessage,
+          });
+
+          // Reset loading state
+          setPosts(prev =>
+            prev.map(p => (p.id === editingPostId ? originalPost : p))
+          );
+        }
+      } else if (editingMode === 'image') {
+        // Handle image editing with API call
+        try {
+          // Get platform ID for the current post
+          const platformId = platformIds[platformKey];
+
+          if (!platformId) {
+            throw new Error(`Platform ID not found for ${originalPost.platform}`);
+          }
+
+          console.log('Calling regeneratePostImage with:', {
+            platformId: platformId,
+            userSuggestions: editingDescription,
+            platformKey: platformKey
+          });
+
+          const response = await PostService.regeneratePostImage(platformId, editingDescription);
+
+          console.log('regeneratePostImage response:', response);
+
+          // Normalize possible response shapes and fall back to the original image if none returned
+          const newImageUrl =
+            (response as any).image_url ||
+            (response as any).regenerated_image_url ||
+            (response as any).regenerated_image;
 
           setPosts(prev =>
             prev.map(p =>
               p.id === editingPostId
                 ? {
                     ...originalPost,
-                    content: fallbackContent,
+                    image: newImageUrl || originalPost.image,
                   }
                 : p
             )
           );
 
           toast({
-            title: 'Content Updated (Demo Mode)',
-            description: `Post content has been updated using fallback mode. AI service may be unavailable.`,
+            title: 'Image Updated!',
+            description: `Post image has been updated based on your description.`,
+          });
+        } catch (error: any) {
+          console.error('Image regeneration error details:', {
+            error: error,
+            message: error?.message,
+            response: error?.response,
+            status: error?.response?.status,
+            data: error?.response?.data,
+            stack: error?.stack
+          });
+
+          let errorMessage = 'Could not update post image. Please try again.';
+
+          if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network Error')) {
+            errorMessage = 'Cannot connect to server. Please check if your backend is running.';
+          } else if (error?.response?.status === 404) {
+            errorMessage = 'API endpoint not found. Please check your backend configuration.';
+          } else if (error?.response?.status === 422) {
+            errorMessage = 'Invalid data provided. Please check your input and try again.';
+          } else if (error?.response?.status >= 500) {
+            errorMessage = 'Server error. Please check your backend logs.';
+          } else if (error?.response?.data?.detail) {
+            errorMessage = error.response.data.detail || errorMessage;
+          } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message || errorMessage;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'string') {
+            errorMessage = error;
+          } else {
+            errorMessage = 'An unknown error occurred. Please check the console for details.';
+          }
+
+          toast({
+            variant: 'destructive',
+            title: 'Image Update Failed',
+            description: errorMessage,
           });
         }
-      } else if (editingMode === 'image') {
-        // Handle image editing - for now just show success message
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate processing
-
-        toast({
-          title: 'Image Updated!',
-          description: `Post image has been updated based on your description.`,
-        });
       }
 
       handleCloseEditing();
@@ -359,6 +587,8 @@ export default function DashboardClient({
           prev.map(p => (p.id === editingPostId ? originalPost : p))
         );
       }
+    } finally {
+      setIsGeneratingEdit(false);
     }
   };
 
@@ -398,198 +628,258 @@ export default function DashboardClient({
   const editingPost = editingPostId ? posts.find(p => p.id === editingPostId) : null;
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <div className="flex items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back</span>
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-gradient-to-br from-indigo-400/15 to-cyan-400/15 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        <div className="md:col-span-2 space-y-8">
-        {/* View Mode Toggle */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="flex items-center gap-1">
-              {viewMode === 'desktop' ? (
-                <>
-                  <Monitor className="h-3 w-3" />
-                  Desktop View
-                </>
-              ) : (
-                <>
-                  <Smartphone className="h-3 w-3" />
-                  Mobile View
-                </>
-              )}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'desktop' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('desktop')}
-              className="flex items-center gap-1"
-            >
-              <Monitor className="h-3 w-3" />
-              Desktop
-            </Button>
-            <Button
-              variant={viewMode === 'mobile' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('mobile')}
-              className="flex items-center gap-1"
-            >
-              <Smartphone className="h-3 w-3" />
-              Mobile
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleToggleAll}
-              className="flex items-center gap-2"
-            >
-              {allPostsClosed ? (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  Expand All
-                </>
-              ) : (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Collapse All
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-        {posts.map(post => (
-          <PostPreview
-            key={post.id}
-            post={post}
-            onRegenerate={handleRegenerate}
-            onDelete={handleDelete}
-            onPublish={handlePublish}
-            globalImageUri={undefined}
-            isOpen={expandAllMode || openPostId === post.id}
-            onToggle={() => {
-              if (expandAllMode) {
-                setExpandAllMode(false);
-                setOpenPostId(post.id);
-              } else if (openPostId === post.id) {
-                setOpenPostId(null);
-              } else {
-                setOpenPostId(post.id);
-              }
-            }}
-            viewMode={viewMode}
-            onStartEditing={handleStartEditing}
-          />
-        ))}
-        </div>
+      <div className="relative z-10">
+        {/* Header */}
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-6 backdrop-blur-sm md:px-8 lg:px-12">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back</span>
+          </Button>
 
-        {/* Editing Panel */}
-        {editingPost && editingMode && (
-          <div className="md:col-span-1">
-          <Card className="sticky top-24">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Edit {editingPost.platform} Post</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCloseEditing}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+          <div className="flex items-center gap-2 mr-4">
+            <div className="h-8 w-8 md:h-10 md:w-10">
+              <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+              Post Automation Platform
+            </span>
+          </div>
+
+          <nav className="flex items-center gap-2 overflow-x-auto">
+            <Button
+              variant="ghost"
+              asChild
+              className="whitespace-nowrap transition-all duration-300"
+            >
+              <Link href="/create-post">Create Post</Link>
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="whitespace-nowrap transition-all duration-300"
+            >
+              <Link href="/dashboard/analytics">Analytics</Link>
+            </Button>
+          </nav>
+
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="container mx-auto p-4 md:p-6 lg:p-8">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+              <div className="md:col-span-2 space-y-8">
+                {/* View Mode Toggle */}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      {viewMode === 'desktop' ? (
+                        <>
+                          <Monitor className="h-3 w-3" />
+                          Desktop View
+                        </>
+                      ) : (
+                        <>
+                          <Smartphone className="h-3 w-3" />
+                          Mobile View
+                        </>
+                      )}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={viewMode === 'desktop' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('desktop')}
+                      className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
+                    >
+                      <Monitor className="h-3 w-3" />
+                      Desktop
+                    </Button>
+                    <Button
+                      variant={viewMode === 'mobile' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('mobile')}
+                      className="flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-0 hover:from-emerald-600 hover:to-teal-700"
+                    >
+                      <Smartphone className="h-3 w-3" />
+                      Mobile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleToggleAll}
+                      className="flex items-center gap-2"
+                    >
+                      {allPostsClosed ? (
+                        <>
+                          <ChevronDown className="h-4 w-4" />
+                          Expand All
+                        </>
+                      ) : (
+                        <>
+                          <ChevronUp className="h-4 w-4" />
+                          Collapse All
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {posts.map(post => (
+                  <PostPreview
+                    key={post.id}
+                    post={post}
+                    onRegenerate={handleRegenerate}
+                    onDelete={handleDelete}
+                    onPublish={handlePublish}
+                    globalImageUri={undefined}
+                    isOpen={expandAllMode || openPostId === post.id}
+                    onToggle={() => {
+                      if (expandAllMode) {
+                        setExpandAllMode(false);
+                        setOpenPostId(post.id);
+                      } else if (openPostId === post.id) {
+                        setOpenPostId(null);
+                      } else {
+                        setOpenPostId(post.id);
+                      }
+                    }}
+                    viewMode={viewMode}
+                    onStartEditing={handleStartEditing}
+                  />
+                ))}
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Mode Selection */}
-              {!editingMode && (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">What would you like to edit?</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleStartEditing(editingPost.id, 'text')}
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Text
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleStartEditing(editingPost.id, 'image')}
-                      className="flex items-center gap-2"
-                    >
-                      <ImageIcon className="h-4 w-4" />
-                      Image
-                    </Button>
-                  </div>
-                </div>
-              )}
 
-              {/* Text Editing Mode */}
-              {editingMode === 'text' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Describe the text changes you want:
-                    </label>
-                    <Textarea
-                      placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
-                      value={editingDescription}
-                      onChange={e => setEditingDescription(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <Button
-                    onClick={handleGenerateEdit}
-                    disabled={!editingDescription.trim()}
-                    className="w-full"
-                  >
-                    Generate Updated Content
-                  </Button>
-                </div>
-              )}
+              {/* Editing Panel */}
+              {editingPost && (
+                <div className="md:col-span-1">
+                  <Card className="sticky top-24">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">Edit {editingPost.platform} Post</CardTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCloseEditing}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Mode Selection */}
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">What would you like to edit?</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleStartEditing(editingPost.id, 'text')}
+                            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Description
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => handleStartEditing(editingPost.id, 'image')}
+                            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-0 hover:from-emerald-600 hover:to-teal-700"
+                          >
+                            <ImageIcon className="h-4 w-4" />
+                            Image
+                          </Button>
+                        </div>
+                      </div>
 
-              {/* Image Editing Mode */}
-              {editingMode === 'image' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">
-                      Describe the image you want:
-                    </label>
-                    <Textarea
-                      placeholder="e.g., 'A modern office workspace,' 'a happy family scene,' 'a futuristic cityscape'"
-                      value={editingDescription}
-                      onChange={e => setEditingDescription(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <Button
-                    onClick={handleGenerateEdit}
-                    disabled={!editingDescription.trim()}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Generate New Image
-                  </Button>
+                      {/* Text Editing Mode */}
+                      {editingMode === 'text' && (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              Describe the text changes you want:
+                            </label>
+                            <Textarea
+                              placeholder="e.g., 'Make it funnier,' 'add three hashtags,' 'target a younger audience'"
+                              value={editingDescription}
+                              onChange={e => setEditingDescription(e.target.value)}
+                              className="min-h-[100px]"
+                            />
+                          </div>
+                          <Button
+                            onClick={handleGenerateEdit}
+                            disabled={!editingDescription.trim() || isGeneratingEdit}
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
+                          >
+                            {isGeneratingEdit && editingMode === 'text' ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                Generating Content...
+                              </>
+                            ) : (
+                              'Generate Updated Content'
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Image Editing Mode */}
+                      {editingMode === 'image' && (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              Describe the image you want:
+                            </label>
+                            <Textarea
+                              placeholder="e.g., 'A modern office workspace,' 'a happy family scene,' 'a futuristic cityscape'"
+                              value={editingDescription}
+                              onChange={e => setEditingDescription(e.target.value)}
+                              className="min-h-[100px]"
+                            />
+                          </div>
+                          <Button
+                            onClick={handleGenerateEdit}
+                            disabled={!editingDescription.trim() || isGeneratingEdit}
+                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-0 hover:from-emerald-600 hover:to-teal-700"
+                          >
+                            {isGeneratingEdit && editingMode === 'image' ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                Generating Image...
+                              </>
+                            ) : (
+                              'Generate New Image'
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

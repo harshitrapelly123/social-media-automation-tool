@@ -143,7 +143,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
 
               {displayImage && (
                 <div className="relative w-full overflow-hidden rounded-lg border" style={{
-                  aspectRatio: dimensions[post.platform].aspectRatio.replace(':', '/')
+                  aspectRatio: dimensions[post.platform]?.aspectRatio.replace(':', '/') || '16:9'
                 }}>
                   <Image
                     src={displayImage}
@@ -270,7 +270,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                 )}
 
                 <p className="text-xs text-muted-foreground mt-1">
-                  Recommended: {dimensions[post.platform].recommended} • {dimensions[post.platform].aspectRatio}
+                  Recommended: {dimensions[post.platform]?.recommended || 'Standard'} • {dimensions[post.platform]?.aspectRatio || '16:9'}
                 </p>
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
 
             {displayImage && (
               <div className="relative w-full overflow-hidden rounded-lg border" style={{
-                aspectRatio: dimensions[post.platform].aspectRatio.replace(':', '/')
+                aspectRatio: dimensions[post.platform]?.aspectRatio.replace(':', '/') || '16:9'
               }}>
                 <Image
                   src={displayImage}

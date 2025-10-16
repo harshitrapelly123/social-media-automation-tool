@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
+import { PostService } from '@/lib/services/postService';
+import { useToast } from '@/hooks/use-toast';
 import {
   Sparkles,
   Wand2,
@@ -26,30 +28,75 @@ import {
 
 export default function GeneratedSummaryPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingPosts, setIsCreatingPosts] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [editedSummary, setEditedSummary] = useState('');
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [generatedSummary, setGeneratedSummary] = useState('');
+  const [summaryId, setSummaryId] = useState<string>('');
+  const [hasLoadedData, setHasLoadedData] = useState(false);
 
   // Load data from localStorage and generate summary
   useEffect(() => {
     const loadData = async () => {
+      // Prevent multiple executions
+      if (hasLoadedData) {
+        console.log('Data already loaded, skipping');
+        return;
+      }
+
       setIsLoading(true);
+      console.log('Starting data load process...');
 
       if (typeof window !== 'undefined') {
         const savedData = localStorage.getItem('generatedSummaryData');
         if (savedData) {
           try {
             const parsed = JSON.parse(savedData);
+            console.log('Loading saved data from localStorage:', parsed);
             setSelectedTopics(parsed.selectedTopics || []);
-            await generateSummaryWithGemini(parsed.selectedTopics || [], '');
+
+            // If we have a summary from the API response, use it exactly as stored
+            if (parsed.summary && parsed.summary.trim()) {
+              console.log('Using stored summary, no API call needed');
+              setGeneratedSummary(parsed.summary);
+              setEditedSummary(parsed.summary);
+              setSummaryId(parsed.summaryId || '');
+              setHasLoadedData(true);
+            } else {
+              console.log('No valid summary found in localStorage, calling backend API');
+              // Only fallback to backend API if no summary available in localStorage
+              await generateSummaryWithBackend(parsed.selectedTopics || [], '');
+              setHasLoadedData(true);
+            }
           } catch (error) {
             console.warn('Error loading saved data:', error);
             setSelectedTopics([]);
+            setHasLoadedData(true);
           }
+        } else {
+          // If no saved data, try to generate summary from topics
+          const finalSummaryData = localStorage.getItem('finalSummaryData');
+          if (finalSummaryData) {
+            const parsed = JSON.parse(finalSummaryData);
+            console.log('Using finalSummaryData:', parsed);
+            setSelectedTopics(parsed.selectedTopics || []);
+            setGeneratedSummary(parsed.summary || '');
+            setEditedSummary(parsed.summary || '');
+            setSummaryId(''); // No summaryId for finalSummaryData
+          } else {
+            console.log('No data found in localStorage');
+            // Only generate new summary if no data exists at all
+            setSelectedTopics([]);
+            setGeneratedSummary('');
+            setEditedSummary('');
+            setSummaryId('');
+          }
+          setHasLoadedData(true);
         }
       }
 
@@ -60,43 +107,54 @@ export default function GeneratedSummaryPage() {
     };
 
     loadData();
-  }, []);
+  }, [hasLoadedData]);
 
-  const generateSummaryWithGemini = async (topics: string[], desc: string) => {
+  const generateSummaryWithBackend = async (topics: string[], desc: string) => {
     try {
-      // Try to use Gemini API if available
-      const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      // Call the FastAPI backend to generate summary
+      const response = await PostService.generateSummary(topics);
 
-      if (GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here') {
-        const prompt = `Create an engaging summary about ${topics.join(', ')}. ${desc ? `Additional context: ${desc}` : ''} Make it suitable for social media sharing with emojis and hashtags.`;
+      // Update state with the backend response
+      const summaryText = (response as any).summary_text ?? response.summary ?? '';
+      setGeneratedSummary(summaryText);
+      setEditedSummary(summaryText);
+      setSummaryId(response.summaryId || '');
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }]
-          })
-        });
+      // Update localStorage with the backend response
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('generatedSummaryData', JSON.stringify({
+          selectedTopics: topics,
+          summary: summaryText,
+          summaryId: response.summaryId,
+          timestamp: new Date().toISOString()
+        }));
+      }
+    } catch (error: any) {
+      // Don't log to console to avoid popup errors - error handling is done via toast
 
-        if (response.ok) {
-          const data = await response.json();
-          const generatedText = data.candidates[0]?.content?.parts[0]?.text || 'No content generated';
-          setGeneratedSummary(generatedText);
-          setEditedSummary(generatedText);
-          return;
-        }
+      let errorMessage = 'Could not generate summary. Please try again.';
+
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = 'Cannot connect to server. Please check if your FastAPI backend is running.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Generate summary endpoint not found. Please check your backend URL and endpoints.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Invalid topic data. Please check your selected topics and try again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please check your FastAPI backend logs.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = (error.response.data as any)?.detail || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
-      // Fallback to sample summary if API fails
-      generateFallbackSummary(topics, desc);
-    } catch (error) {
-      console.error('Gemini API Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: errorMessage,
+      });
+
+      // Fallback to sample summary if backend fails
       generateFallbackSummary(topics, desc);
     }
   };
@@ -119,6 +177,7 @@ The future holds immense potential for those ready to embrace these innovations.
 
     setGeneratedSummary(summary);
     setEditedSummary(summary);
+    setSummaryId(''); // Clear summaryId for fallback summaries since they can't be regenerated
   };
 
   const handleEdit = () => {
@@ -134,6 +193,7 @@ The future holds immense potential for those ready to embrace these innovations.
       localStorage.setItem('generatedSummaryData', JSON.stringify({
         selectedTopics,
         summary: editedSummary,
+        summaryId,
         timestamp: new Date().toISOString()
       }));
     }
@@ -146,8 +206,73 @@ The future holds immense potential for those ready to embrace these innovations.
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
-    await generateSummaryWithGemini(selectedTopics, '');
-    setIsRegenerating(false);
+
+    try {
+      let response;
+
+      // If we have a summaryId, try to regenerate using the backend API first
+      if (summaryId) {
+        try {
+          response = await PostService.regenerateText(summaryId);
+        } catch (regenerateError: any) {
+          // If regenerate fails, fallback to generate new summary
+          console.warn('Regenerate failed, falling back to generate new summary');
+          response = await PostService.generateSummary(selectedTopics);
+        }
+      } else {
+        // No summaryId available, generate new summary
+        response = await PostService.generateSummary(selectedTopics);
+      }
+
+      // Update the summary with the response content
+      const summaryText = (response as any).summary_text ?? (response as any).summary ?? (response as any).regeneratedContent ?? '';
+      setGeneratedSummary(summaryText);
+      setEditedSummary(summaryText);
+
+      // Update localStorage with the new content
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('generatedSummaryData', JSON.stringify({
+          selectedTopics,
+          summary: summaryText,
+          summaryId: (response as any).summaryId || summaryId,
+          timestamp: new Date().toISOString()
+        }));
+      }
+
+      toast({
+        title: 'Summary Regenerated!',
+        description: 'Your summary has been updated with fresh content.',
+      });
+    } catch (error: any) {
+      // Don't log to console to avoid popup errors - error handling is done via toast
+
+      let errorMessage = 'Could not regenerate summary. Please try again.';
+
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = 'Cannot connect to server. Please check if your FastAPI backend is running.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Generate summary endpoint not found. Please check your backend URL and endpoints.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Invalid topic data. Please check your selected topics and try again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please check your FastAPI backend logs.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = (error.response.data as any)?.detail || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        variant: 'destructive',
+        title: 'Regeneration Failed',
+        description: errorMessage,
+      });
+
+      // Fallback to sample summary if all backend calls fail
+      generateFallbackSummary(selectedTopics, '');
+    } finally {
+      setIsRegenerating(false);
+    }
   };
 
   const handlePlatformToggle = (platform: string) => {
@@ -167,27 +292,122 @@ The future holds immense potential for those ready to embrace these innovations.
   };
 
   const handleShareToPlatforms = async () => {
+    if (selectedPlatforms.length === 0) return;
+
+    setIsCreatingPosts(true);
+
     console.log('Sharing to platforms:', selectedPlatforms);
     console.log('Summary:', generatedSummary);
+    console.log('Summary ID:', summaryId);
 
-    // In a real app, this would integrate with each platform's API
-    // For now, we'll simulate the sharing process
-
-    // Save the final summary data to localStorage for the dashboard
+    // Debug authentication state before API calls
     if (typeof window !== 'undefined') {
-      localStorage.setItem('finalSummaryData', JSON.stringify({
-        selectedTopics,
-        summary: generatedSummary,
-        selectedPlatforms,
-        timestamp: new Date().toISOString()
-      }));
-
-      // Save selected platforms for dashboard post generation
-      localStorage.setItem('dashboardSelectedPlatforms', JSON.stringify(selectedPlatforms));
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+      console.log('Authentication state before API calls:', {
+        hasToken: !!token,
+        tokenLength: token?.length || 0,
+        localStorageKeys: Object.keys(localStorage),
+        cookies: document.cookie
+      });
     }
 
-    // Redirect to dashboard
-    router.push('/dashboard');
+    try {
+      // Step 1: Map selected platforms to the correct format
+      const platformMapping: { [key: string]: string } = {
+        'twitter': 'X',
+        'linkedin': 'LinkedIn',
+        'instagram': 'Instagram',
+        'facebook': 'Facebook'
+      };
+
+      const mappedPlatforms = selectedPlatforms.map(platform => platformMapping[platform] || platform);
+      console.log('Mapped platforms:', mappedPlatforms);
+
+      // Step 2: Call approve summary API first
+      console.log('Calling approve summary API...');
+      await PostService.approveSummary(generatedSummary, summaryId);
+
+      // Step 3: Call generate content API second
+      console.log('Calling generate content API...');
+      const contentResponse = await PostService.generateContent(summaryId, mappedPlatforms);
+      console.log('Content generation response:', contentResponse);
+
+      // Step 4: Save the platform content data to localStorage for the dashboard
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('finalSummaryData', JSON.stringify({
+          selectedTopics,
+          summary: generatedSummary,
+          selectedPlatforms: mappedPlatforms,
+          timestamp: new Date().toISOString()
+        }));
+
+        // Save platform content data for dashboard
+        localStorage.setItem('dashboardPlatformContent', JSON.stringify(contentResponse));
+
+        // Save selected platforms for dashboard post generation
+        localStorage.setItem('dashboardSelectedPlatforms', JSON.stringify(mappedPlatforms));
+      }
+
+      toast({
+        title: 'Posts Created Successfully!',
+        description: `Your summary has been approved and posts generated for ${mappedPlatforms.join(', ')}.`,
+      });
+
+      // Step 5: Redirect to dashboard (always redirect, even if API calls fail)
+      console.log('Redirecting to dashboard...');
+      console.log('Current user state - checking if authenticated');
+
+      // Check if user is authenticated before redirect
+      if (typeof window !== 'undefined') {
+        // Check for tokens in cookies (primary storage)
+        const token = document.cookie.split(';').find(row => row.trim().startsWith('token='))?.split('=')[1];
+        const accessToken = document.cookie.split(';').find(row => row.trim().startsWith('access_token='))?.split('=')[1];
+
+        console.log('Auth check before redirect:', {
+          hasToken: !!token,
+          hasAccessToken: !!accessToken,
+          tokenLength: token?.length || 0
+        });
+
+        if (token || accessToken) {
+          console.log('User is authenticated, redirecting to dashboard');
+          (window as any).location.href = '/dashboard';
+        } else {
+          console.log('No valid auth token found, redirecting to login');
+          (window as any).location.href = '/login';
+        }
+      } else {
+        // Fallback redirect
+        (window as any).location.href = '/dashboard';
+      }
+
+    } catch (error: any) {
+      console.error('Error in handleShareToPlatforms:', error);
+
+      let errorMessage = 'Could not create posts. Please try again.';
+
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = 'Cannot connect to server. Please check if your FastAPI backend is running.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'API endpoint not found. Please check your backend URL and endpoints.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Invalid data provided. Please check your summary and selected platforms.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please check your FastAPI backend logs.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = (error.response.data as any)?.detail || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        variant: 'destructive',
+        title: 'Post Creation Failed',
+        description: errorMessage,
+      });
+    } finally {
+      setIsCreatingPosts(false);
+    }
   };
 
   const platforms = [
@@ -237,7 +457,7 @@ The future holds immense potential for those ready to embrace these innovations.
               asChild
               className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
             >
-              <Link href="/">Generator</Link>
+              <Link href="/create-post">Create Post</Link>
             </Button>
           <Button
             variant="ghost"
@@ -255,7 +475,7 @@ The future holds immense potential for those ready to embrace these innovations.
 
       <div className="relative z-10 flex w-full h-full mt-16 gap-3 pb-4 overflow-hidden">
         {/* Main Content Area - Full Width Initially */}
-        <div className={`${selectedTopics.length > 0 && generatedSummary ? 'w-2/3' : 'w-full'} flex flex-col transition-all duration-500`}>
+        <div className={`${selectedTopics.length > 0 ? 'w-2/3' : 'w-full'} flex flex-col transition-all duration-500`}>
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarWidth: 'none' }}>
             <div className="max-w-4xl mx-auto space-y-6">
@@ -445,8 +665,8 @@ The future holds immense potential for those ready to embrace these innovations.
           </div>
         </div>
 
-        {/* Platform Selection - Shows only after content is generated */}
-        {selectedTopics.length > 0 && generatedSummary && (
+        {/* Platform Selection - Shows when topics are selected */}
+        {selectedTopics.length > 0 && (
           <div className="w-1/4 flex flex-col h-[calc(100vh-8rem)]">
             <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
               <div className="text-center">
@@ -532,12 +752,21 @@ The future holds immense potential for those ready to embrace these innovations.
               <div className="flex justify-center">
                 <Button
                   onClick={handleShareToPlatforms}
-                  disabled={selectedPlatforms.length === 0}
+                  disabled={selectedPlatforms.length === 0 || isCreatingPosts}
                   size="lg"
                   className="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-800 text-white border-0 shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 px-4 py-2 text-sm font-semibold rounded-full w-full max-w-xs"
                 >
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Approve and Create Posts
+                  {isCreatingPosts ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Creating Posts...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Approve and Create Posts
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

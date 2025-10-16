@@ -1,10 +1,25 @@
 
+'use client';
+
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleCreatePost = () => {
+    // Check if user is authenticated
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') || document.cookie.split('token=')[1]?.split(';')[0] : null;
+
+    if (token) {
+      router.push('/create-post');
+    } else {
+      router.push('/login');
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col">
       {/* Background decorative elements */}
@@ -33,8 +48,8 @@ export default function Home() {
             <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 px-8 py-4 text-lg font-semibold rounded-full">
               <Link href="/login">Get Started</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-2 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-slate-700 px-8 py-4 text-lg font-semibold rounded-full">
-              <Link href="/create-post">Create Post</Link>
+            <Button onClick={handleCreatePost} variant="outline" size="lg" className="w-full sm:w-auto border-2 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-slate-700 px-8 py-4 text-lg font-semibold rounded-full">
+              Create Post
             </Button>
           </div>
         </div>

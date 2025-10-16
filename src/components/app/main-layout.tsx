@@ -20,7 +20,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   const navLinks = [
-    { href: '/dashboard', label: 'Generator', exact: true },
+    { href: '/create-post', label: 'Create Post', exact: true },
     { href: '/dashboard/analytics', label: 'Analytics' },
   ];
 

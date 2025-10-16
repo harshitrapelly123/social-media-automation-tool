@@ -9,9 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { Sparkles, Wand2, Plus, ArrowLeft } from 'lucide-react';
+import { PostService } from '@/lib/services/postService';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CreatePostPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [manualTopic, setManualTopic] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -56,23 +59,71 @@ export default function CreatePostPage() {
   };
 
   const handleGenerateSummary = async () => {
-    if (selectedTopics.length === 0) return;
+    if (selectedTopics.length === 0 || isGenerating) return;
+
+    console.log('Generate Summary button clicked - starting generation process');
     setIsGenerating(true);
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Call the FastAPI backend to generate summary (only one call)
+      console.log('Making API call to generate summary for topics:', selectedTopics);
+      const response = await PostService.generateSummary(selectedTopics);
+      console.log('API response received:', response);
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(
-        'generatedSummaryData',
-        JSON.stringify({
+      // Store the response data in localStorage for the next page
+      if (typeof window !== 'undefined') {
+        const summaryText = (response as any).summary_text ?? response.summary ?? '';
+        console.log('Storing summary data in localStorage:', {
           selectedTopics,
+          summary: summaryText,
+          summaryId: (response as any).summary_id || response.summaryId,
           timestamp: new Date().toISOString(),
-        })
-      );
-    }
+        });
+        localStorage.setItem(
+          'generatedSummaryData',
+          JSON.stringify({
+            selectedTopics,
+            summary: summaryText,
+            summaryId: (response as any).summary_id || response.summaryId,
+            timestamp: new Date().toISOString(),
+          })
+        );
+      }
 
-    router.push('/generated-summary');
-    setIsGenerating(false);
+      toast({
+        title: 'Summary Generated!',
+        description: 'Your AI-generated summary is ready.',
+      });
+
+      // Redirect to the generated summary page
+      router.push('/generated-summary');
+    } catch (error: any) {
+      console.error('Error in handleGenerateSummary:', error);
+
+      let errorMessage = 'Could not generate summary. Please try again.';
+
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = 'Cannot connect to server. Please check if your FastAPI backend is running.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Generate summary endpoint not found. Please check your backend URL and endpoints.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Invalid topic data. Please check your selected topics and try again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please check your FastAPI backend logs.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = (error.response.data as any)?.detail || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: errorMessage,
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -116,7 +167,7 @@ export default function CreatePostPage() {
               asChild
               className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
             >
-              <Link href="/">Generator</Link>
+              <Link href="/create-post">Create Post</Link>
             </Button>
             <Button
               variant="ghost"

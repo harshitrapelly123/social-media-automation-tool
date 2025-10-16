@@ -63,7 +63,7 @@ export default function LoginPage() {
             asChild
             className="whitespace-nowrap transition-all duration-300"
           >
-            <Link href="/">Dashboard</Link>
+            <Link href="/create-post">Create Post</Link>
           </Button>
         </nav>
 

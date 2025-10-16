@@ -5,9 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, LogIn } from 'lucide-react';
-import { useAuth } from '@/firebase';
-import { initiateAnonymousSignIn, initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { Loader2, LogIn, KeyRound } from 'lucide-react';
+import { AuthService } from '@/lib/services/authService';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -26,10 +25,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const router = useRouter();
-  const auth = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [isGuestLoading, setGuestLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -39,40 +36,61 @@ export default function LoginForm() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
-    initiateEmailSignIn(auth, data.email, data.password,
-      () => { // onSuccess
-        router.push('/create-post');
-      },
-      (error) => { // onError
-        toast({
-            variant: 'destructive',
-            title: 'Login Failed',
-            description: error.message || 'Could not sign in. Please check your credentials.',
-        });
-        setLoading(false);
+    try {
+      const response = await AuthService.login(data.email, data.password);
+
+      // Store token in cookies and localStorage
+      document.cookie = `token=${response.access_token}; path=/; max-age=${7 * 24 * 60 * 60}; samesite=strict`; // 7 days
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', response.access_token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        localStorage.setItem('isAuthenticated', 'true');
       }
-    );
+
+      toast({
+        title: 'Login Successful!',
+        description: 'Welcome back!',
+      });
+
+      router.push('/create-post');
+    } catch (error: any) {
+      // Don't log to console to avoid popup errors - error handling is done via toast
+
+      let errorMessage = 'Could not sign in. Please check your credentials.';
+
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = 'Cannot connect to server. Please check if your FastAPI backend is running.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Login endpoint not found. Please check your backend URL and endpoints.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Invalid login data. Please check your email format and try again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Server error. Please check your FastAPI backend logs.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = (error.response.data as any)?.detail || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: errorMessage,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGuestLogin = () => {
-    setGuestLoading(true);
-    initiateAnonymousSignIn(
-        auth,
-        () => { // onSuccess
-            router.push('/create-post');
-        },
-        (error) => { // onError
-            console.error('Anonymous login failed:', error);
-            toast({
-                variant: 'destructive',
-                title: 'Login Failed',
-                description: error.message || 'Could not sign in as guest.',
-            });
-            setGuestLoading(false);
-        }
-    )
+  const handleForgotPassword = () => {
+    toast({
+      title: 'Forgot Password',
+      description: 'Password reset functionality will be available soon. Please contact support if you need help.',
+    });
   };
   
   return (
@@ -106,25 +124,18 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
               {loading ? 'Logging In...' : 'Login'}
             </Button>
           </form>
         </Form>
-        <div className="my-4 flex items-center">
-            <Separator className="flex-1" />
-            <span className="mx-4 text-xs text-muted-foreground">OR</span>
-            <Separator className="flex-1" />
+        <div className="mt-4 text-center">
+          <Button onClick={handleForgotPassword} variant="ghost" className="text-sm text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100">
+            <KeyRound className="mr-2 h-4 w-4" />
+            Forgot Password?
+          </Button>
         </div>
-        <Button onClick={handleGuestLogin} className="w-full" variant="secondary" disabled={isGuestLoading}>
-          {isGuestLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <LogIn className="mr-2 h-4 w-4" />
-          )}
-          {isGuestLoading ? 'Signing In...' : 'Continue as Guest'}
-        </Button>
       </CardContent>
     </Card>
   );
