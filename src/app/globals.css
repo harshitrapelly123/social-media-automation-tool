@@ -105,6 +105,131 @@ body {
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Responsive utilities */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .text-responsive-xs {
+    @apply text-xs sm:text-sm;
+  }
+
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  .text-responsive-2xl {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  .text-responsive-3xl {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  .spacing-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .spacing-responsive-sm {
+    @apply p-2 sm:p-3 md:p-4;
+  }
+
+  .gap-responsive {
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .gap-responsive-sm {
+    @apply gap-2 sm:gap-3 md:gap-4;
+  }
+
+  /* Mobile-first responsive flex */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row;
+  }
+
+  .flex-responsive-reverse {
+    @apply flex flex-col-reverse sm:flex-row;
+  }
+
+  /* Responsive grid */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  /* Responsive margins and padding */
+  .mx-responsive {
+    @apply mx-2 sm:mx-4 lg:mx-6;
+  }
+
+  .my-responsive {
+    @apply my-4 sm:my-6 lg:my-8;
+  }
+
+  .mt-responsive {
+    @apply mt-4 sm:mt-6 lg:mt-8;
+  }
+
+  .mb-responsive {
+    @apply mb-4 sm:mb-6 lg:mb-8;
+  }
+
+  /* Responsive button sizing */
+  .btn-responsive {
+    @apply px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base;
+  }
+
+  .btn-responsive-lg {
+    @apply px-6 py-3 text-base sm:px-8 sm:py-4 sm:text-lg;
+  }
+
+  /* Responsive card styling */
+  .card-responsive {
+    @apply p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl lg:rounded-2xl;
+  }
+
+  /* Responsive form styling */
+  .form-responsive {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  .input-responsive {
+    @apply p-3 sm:p-4 text-base;
+  }
+
+  /* Responsive navigation */
+  .nav-responsive {
+    @apply flex items-center gap-2 sm:gap-4 overflow-x-auto;
+  }
+
+  /* Responsive header */
+  .header-responsive {
+    @apply flex items-center gap-2 sm:gap-4 p-3 sm:p-4 md:p-6;
+  }
 }
 
 @keyframes fadeIn {

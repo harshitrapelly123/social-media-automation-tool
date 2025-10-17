@@ -79,6 +79,13 @@ export default function DashboardClient({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Persist posts to localStorage whenever posts change
+  useEffect(() => {
+    if (posts.length > 0 && typeof window !== 'undefined') {
+      localStorage.setItem('dashboardPosts', JSON.stringify(posts));
+    }
+  }, [posts]);
+
   const [openPostId, setOpenPostId] = useState<string | null>(null);
   const [expandAllMode, setExpandAllMode] = useState(true);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -194,6 +201,42 @@ export default function DashboardClient({
 
         // Check if we have platform content data from the approval process
         if (typeof window !== 'undefined') {
+          // First, try to load existing posts from persistent storage
+          const existingPostsData = localStorage.getItem('dashboardPosts');
+          if (existingPostsData) {
+            try {
+              const existingPosts = JSON.parse(existingPostsData);
+              console.log('Loading existing posts from persistent storage:', existingPosts.length);
+
+              setPosts(existingPosts);
+
+              // Set loading state for images
+              const loadingImageSet = new Set<string>();
+              existingPosts.forEach((post: Post) => {
+                if (post.image) {
+                  loadingImageSet.add(post.id);
+                }
+              });
+              setLoadingImages(loadingImageSet);
+
+              setLoading(false);
+
+              // Simulate image loading time and clear loading state after 2 seconds
+              setTimeout(() => {
+                setLoadingImages(new Set());
+              }, 2000);
+
+              toast({
+                title: 'Posts Restored!',
+                description: `Restored ${existingPosts.length} posts from previous session.`,
+              });
+
+              return;
+            } catch (error) {
+              console.warn('Error parsing existing posts data:', error);
+            }
+          }
+
           const platformContentData = localStorage.getItem('dashboardPlatformContent');
           if (platformContentData) {
             try {
@@ -243,6 +286,9 @@ export default function DashboardClient({
               setLoadingImages(loadingImageSet);
 
               setLoading(false);
+
+              // Store posts persistently for navigation between pages
+              localStorage.setItem('dashboardPosts', JSON.stringify(newPosts));
 
               // Clear the platform content data after using it
               localStorage.removeItem('dashboardPlatformContent');
@@ -523,7 +569,10 @@ export default function DashboardClient({
                     ...originalPost,
                     image: newImageUrl || originalPost.image,
                   }
-                : p
+                : {
+                    ...p,
+                    image: newImageUrl || p.image,
+                  }
             )
           );
 

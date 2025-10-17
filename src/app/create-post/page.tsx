@@ -142,65 +142,65 @@ export default function CreatePostPage() {
 
       <div className="relative z-10 flex flex-col h-full">
         {/* Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 backdrop-blur-sm md:px-6 lg:px-8">
+        <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center gap-1 sm:gap-2 md:gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-2 sm:px-3 md:px-4 lg:px-6 backdrop-blur-sm">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+            className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300 flex-shrink-0"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back</span>
+            <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline text-sm sm:text-base">Back</span>
           </Button>
 
           <Link href="/">
-            <div className="flex items-center gap-2 mr-4 cursor-pointer">
-              <div className="h-8 w-8 md:h-10 md:w-10">
+            <div className="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2 md:mr-4 cursor-pointer min-w-0 flex-shrink-0">
+              <div className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 flex-shrink-0">
                 <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+              <span className="font-headline text-sm sm:text-base md:text-lg lg:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200 truncate">
                 Post Automation Platform
               </span>
             </div>
           </Link>
 
-          <nav className="flex items-center gap-2 overflow-x-auto">
+          <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto flex-1 min-w-0">
             <Button
               variant="ghost"
               asChild
-              className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
+              className="whitespace-nowrap text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 py-1 sm:py-2 transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl flex-shrink-0"
             >
               <Link href="/create-post">Create Post</Link>
             </Button>
             <Button
               variant="ghost"
               asChild
-              className="whitespace-nowrap transition-all duration-300"
+              className="whitespace-nowrap text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 py-1 sm:py-2 transition-all duration-300 flex-shrink-0"
             >
               <Link href="/analytics">Analytics</Link>
             </Button>
           </nav>
 
-          <div className="ml-auto flex items-center gap-2 md:gap-4">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <ThemeToggle />
             <UserNav />
           </div>
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 px-2 pb-6 overflow-hidden">
+        <div className="flex-1 px-3 sm:px-4 pb-4 sm:pb-6 overflow-hidden">
           <div className="max-w-3xl mx-auto h-full flex flex-col">
             {/* Header Section */}
-            <div className="text-center py-4 mb-2 flex-shrink-0">
+            <div className="text-center py-3 sm:py-4 mb-2 sm:mb-3 flex-shrink-0">
 
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent mb-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent mb-2 leading-tight">
                 Select Your Topics
               </h1>
-              <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto px-2">
                 Select your topics and generate engaging summaries with AI
               </p>
             </div>
@@ -208,16 +208,16 @@ export default function CreatePostPage() {
             {/* Card Section */}
             <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 flex-1 flex flex-col min-h-0">
               <CardHeader className="text-center pb-0">
-                
+
               </CardHeader>
 
-              <CardContent className="flex-1 overflow-y-auto space-y-4 p-4">
+              <CardContent className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 p-3 sm:p-4">
                 {/* Topics Grid */}
                 <div className="space-y-3">
                   <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
                     {addedTopics.length > 0 ? 'All Topics' : 'Trending Topics'}
                   </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2 md:gap-3">
                     {allTopics.map((topic, index) => (
                       <div
                         key={index}
@@ -229,7 +229,7 @@ export default function CreatePostPage() {
                         onClick={() => handleTopicToggle(topic)}
                       >
                         <div
-                          className={`relative p-2 md:p-3 rounded-lg border-2 transition-all duration-300 overflow-hidden flex-1 min-h-[60px] flex items-center justify-center ${
+                          className={`relative p-2 sm:p-3 rounded-lg border-2 transition-all duration-300 overflow-hidden flex-1 min-h-[50px] sm:min-h-[60px] flex items-center justify-center ${
                             selectedTopics.includes(topic)
                               ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-lg shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
                               : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/30 dark:hover:bg-slate-600'
@@ -240,7 +240,7 @@ export default function CreatePostPage() {
                           )}
                           <div className="relative w-full text-center">
                             <span
-                              className={`font-medium transition-colors duration-300 block text-sm leading-tight ${
+                              className={`font-medium transition-colors duration-300 block text-xs sm:text-sm leading-tight ${
                                 selectedTopics.includes(topic)
                                   ? 'text-slate-800 dark:text-slate-200'
                                   : 'text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400'
@@ -256,16 +256,16 @@ export default function CreatePostPage() {
                 </div>
 
                 {/* Add Custom Topic */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200">
                     Add Custom Topic
                   </h3>
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                     <Input
                       placeholder="Enter your custom topic..."
                       value={manualTopic}
                       onChange={(e) => setManualTopic(e.target.value)}
-                      className="flex-1 h-12 bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="flex-1 h-10 sm:h-12 bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base"
                       onKeyPress={(e) =>
                         e.key === 'Enter' && handleAddManualTopic()
                       }
@@ -273,7 +273,7 @@ export default function CreatePostPage() {
                     <Button
                       onClick={handleAddManualTopic}
                       disabled={!manualTopic.trim()}
-                      className="h-12 px-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-10 sm:h-12 px-4 sm:px-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add
@@ -282,24 +282,24 @@ export default function CreatePostPage() {
                 </div>
 
                 {/* Generate Button */}
-                <div className="flex justify-center pt-8">
+                <div className="flex justify-center pt-4 sm:pt-8">
                   <Button
                     onClick={handleGenerateSummary}
                     disabled={selectedTopics.length === 0 || isGenerating}
                     size="lg"
-                    className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-12 py-4 text-lg font-semibold rounded-full"
+                    className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-8 sm:px-12 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-full w-full sm:w-auto"
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center space-x-2 sm:space-x-3">
                       {isGenerating ? (
                         <>
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>Generating Summary...</span>
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span className="text-sm sm:text-base">Generating Summary...</span>
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-5 h-5" />
-                          <span>Generate Summary</span>
-                          <Wand2 className="w-5 h-5" />
+                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <span className="text-sm sm:text-base">Generate Summary</span>
+                          <Wand2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         </>
                       )}
                     </div>

@@ -27,70 +27,70 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAuthCheck } from '@/hooks/use-auth-check';
-// Simple markdown renderer component
+// Simple markdown renderer component - Mobile-optimized
 const SimpleMarkdownRenderer = ({ content }: { content: string }) => {
   // Split content by lines and process each line
   const lines = content.split('\n');
 
   const renderLine = (line: string, index: number) => {
-    // Handle headers (lines starting with #)
+    // Handle headers (lines starting with #) - Reduced sizes for mobile
     if (line.startsWith('# ')) {
       return (
-        <h1 key={index} className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4 mt-6 first:mt-0">
+        <h1 key={index} className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3 sm:mb-4 mt-4 sm:mt-6 first:mt-0">
           {line.substring(2)}
         </h1>
       );
     }
     if (line.startsWith('## ')) {
       return (
-        <h2 key={index} className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-3 mt-5 first:mt-0">
+        <h2 key={index} className="text-base sm:text-lg md:text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2 sm:mb-3 mt-3 sm:mt-5 first:mt-0">
           {line.substring(3)}
         </h2>
       );
     }
     if (line.startsWith('### ')) {
       return (
-        <h3 key={index} className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2 mt-4 first:mt-0">
+        <h3 key={index} className="text-sm sm:text-base md:text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2 mt-3 sm:mt-4 first:mt-0">
           {line.substring(4)}
         </h3>
       );
     }
 
-    // Handle bullet points
+    // Handle bullet points - Smaller, more compact
     if (line.trim().startsWith('• ')) {
       return (
-        <div key={index} className="flex items-start space-x-2 mb-2">
-          <span className="text-blue-500 mt-1 flex-shrink-0">•</span>
-          <span className="text-slate-700 dark:text-slate-300">{line.substring(2)}</span>
+        <div key={index} className="flex items-start space-x-2 mb-1 sm:mb-2">
+          <span className="text-blue-500 mt-1 flex-shrink-0 text-sm">•</span>
+          <span className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">{line.substring(2)}</span>
         </div>
       );
     }
 
-    // Handle numbered lists
+    // Handle numbered lists - Smaller, more compact
     if (/^\d+\.\s/.test(line.trim())) {
       const match = line.match(/^(\d+)\.\s(.*)$/);
       if (match) {
         return (
-          <div key={index} className="flex items-start space-x-2 mb-2">
-            <span className="text-blue-500 font-medium flex-shrink-0">{match[1]}.</span>
-            <span className="text-slate-700 dark:text-slate-300">{match[2]}</span>
+          <div key={index} className="flex items-start space-x-2 mb-1 sm:mb-2">
+            <span className="text-blue-500 font-medium flex-shrink-0 text-sm sm:text-base">{match[1]}.</span>
+            <span className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">{match[2]}</span>
           </div>
         );
       }
     }
 
-    // Handle bold text (**text**)
+    // Handle bold text (**text**) - Smaller, more compact
     if (line.includes('**') && line.trim()) {
       const parts = line.split('**');
       return (
-        <p key={index} className="mb-3 leading-relaxed">
+        <p key={index} className="mb-2 sm:mb-3 leading-relaxed">
           {parts.map((part, i) =>
             i % 2 === 1 ? (
-              <strong key={i} className="font-semibold text-slate-900 dark:text-slate-100">
+              <strong key={i} className="font-semibold text-slate-900 dark:text-slate-100 text-sm sm:text-base">
                 {part}
               </strong>
             ) : (
-              <span key={i}>{part}</span>
+              <span key={i} className="text-sm sm:text-base">{part}</span>
             )
           )}
         </p>
@@ -102,10 +102,10 @@ const SimpleMarkdownRenderer = ({ content }: { content: string }) => {
       return <br key={index} />;
     }
 
-    // Regular paragraph
+    // Regular paragraph - Smaller, more compact for mobile
     if (line.trim()) {
       return (
-        <p key={index} className="mb-3 leading-relaxed text-slate-700 dark:text-slate-300">
+        <p key={index} className="mb-2 sm:mb-3 leading-relaxed text-sm sm:text-base text-slate-700 dark:text-slate-300">
           {line}
         </p>
       );
@@ -115,7 +115,7 @@ const SimpleMarkdownRenderer = ({ content }: { content: string }) => {
   };
 
   return (
-    <div className="h-full p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-fade-in">
+    <div className="h-full p-3 sm:p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-fade-in">
       {lines.map((line, index) => renderLine(line, index))}
     </div>
   );
@@ -527,129 +527,139 @@ The future holds immense potential for those ready to embrace these innovations.
         <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
-      {/* Full Width Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-4 backdrop-blur-sm md:px-6 lg:px-8">
+      {/* Compact Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-14 sm:h-16 items-center gap-2 sm:gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-sm">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+          className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300 flex-shrink-0"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back</span>
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline text-sm sm:text-base">Back</span>
         </Button>
 
         <Link href="/">
-          <div className="flex items-center gap-2 mr-4 cursor-pointer">
-            <div className="h-8 w-8 md:h-10 md:w-10">
+          <div className="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2 md:mr-4 cursor-pointer min-w-0 flex-shrink-0">
+            <div className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 flex-shrink-0">
               <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+            <span className="font-headline text-sm sm:text-base md:text-lg lg:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200 truncate">
               Post Automation Platform
             </span>
           </div>
         </Link>
 
-        <nav className="flex items-center gap-2 overflow-x-auto">
+        <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto flex-1 min-w-0">
             <Button
               variant="ghost"
               asChild
-              className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
+              className="whitespace-nowrap text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 py-1 sm:py-2 transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl flex-shrink-0"
             >
               <Link href="/create-post">Create Post</Link>
             </Button>
           <Button
             variant="ghost"
             asChild
-            className="whitespace-nowrap transition-all duration-300"
+            className="whitespace-nowrap text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 py-1 sm:py-2 transition-all duration-300 flex-shrink-0"
           >
             <Link href="/analytics">Analytics</Link>
           </Button>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:gap-4">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <ThemeToggle />
           <UserNav />
         </div>
       </header>
 
-      <div className="relative z-10 flex w-full h-full mt-16 gap-3 pb-4 overflow-hidden">
+      <div className="relative z-10 flex w-full h-full mt-14 sm:mt-16 gap-2 sm:gap-3 pb-3 sm:pb-4 overflow-hidden">
         {/* Main Content Area - Full Width Initially */}
         <div className={`${selectedTopics.length > 0 ? 'w-2/3' : 'w-full'} flex flex-col transition-all duration-500`}>
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarWidth: 'none' }}>
-            <div className="max-w-4xl mx-auto space-y-6">
-              {/* Selected Topics */}
-              <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-lg">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Selected Topics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="flex flex-wrap gap-2">
-                      {[1, 2, 3].map((i) => (
-                        <div
-                          key={i}
-                          className="h-7 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 rounded-full animate-pulse"
-                          style={{
-                            width: `${80 + (i * 15)}px`,
-                            animationDelay: `${i * 0.2}s`,
-                            animationDuration: '1.5s'
-                          }}
-                        />
-                      ))}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4" style={{ scrollbarWidth: 'none' }}>
+            <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+              {/* Selected Topics - Compact Version */}
+              {selectedTopics.length > 0 && (
+                <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-lg">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-200">
+                        Selected Topics
+                      </h3>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {selectedTopics.length} topic{selectedTopics.length > 1 ? 's' : ''}
+                      </span>
                     </div>
-                  ) : selectedTopics.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedTopics.map((topic, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 px-3 py-1 animate-fade-in"
-                          style={{ animationDelay: `${index * 0.1}s` }}
-                        >
-                          {topic}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
+                    {isLoading ? (
+                      <div className="flex flex-wrap gap-1 sm:gap-2">
+                        {[1, 2, 3].map((i) => (
+                          <div
+                            key={i}
+                            className="h-5 sm:h-6 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 rounded-full animate-pulse"
+                            style={{
+                              width: `${60 + (i * 10)}px`,
+                              animationDelay: `${i * 0.2}s`,
+                              animationDuration: '1.5s'
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1 sm:gap-2">
+                        {selectedTopics.map((topic, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm animate-fade-in"
+                            style={{ animationDelay: `${index * 0.1}s` }}
+                          >
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Summary Card */}
+              {/* Summary Card - Compact Design */}
               <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-xl flex flex-col h-[calc(100vh-16rem)] mb-8">
-                <CardHeader className="pb-4 flex-shrink-0">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl flex items-center space-x-2">
-                        <Sparkles className="w-5 h-5 text-blue-500" />
-                        <span>Your Generated Summary</span>
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        {isEditing ? 'Edit your summary content' : 'AI-generated summary ready for sharing'}
-                      </CardDescription>
+                <CardHeader className="pb-3 sm:pb-4 flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0 hidden sm:block" />
+                      <div>
+                        <CardTitle className="text-sm sm:text-base leading-tight">
+                          Your Generated Summary
+                        </CardTitle>
+                        <CardDescription className="mt-1 text-sm hidden sm:block">
+                          {isEditing ? 'Edit your summary content' : 'AI-generated summary ready for sharing'}
+                        </CardDescription>
+                      </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                       {isEditing ? (
                         <>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={handleCancelEdit}
+                            className="text-xs px-2 py-1 h-7 sm:h-8"
                           >
                             Cancel
                           </Button>
                           <Button
                             size="sm"
                             onClick={handleSaveEdit}
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0"
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 text-xs px-2 py-1 h-7 sm:h-8"
                           >
-                            <CheckCircle className="w-4 h-4 mr-2" />
+                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 hidden sm:inline" />
                             Save
                           </Button>
                         </>
@@ -659,24 +669,30 @@ The future holds immense potential for those ready to embrace these innovations.
                             variant="outline"
                             size="sm"
                             onClick={handleEdit}
-                            className="flex items-center space-x-2"
+                            className="text-xs px-2 py-1 h-7 sm:h-8"
                           >
-                            <Edit3 className="w-4 h-4" />
-                            <span>Edit</span>
+                            <Edit3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 hidden sm:inline" />
+                            Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={handleRegenerate}
                             disabled={isRegenerating}
-                            className="flex items-center space-x-2"
+                            className="text-xs px-2 py-1 h-7 sm:h-8"
                           >
                             {isRegenerating ? (
-                              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                              <>
+                                <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-1" />
+                                <span className="hidden sm:inline">Regenerate</span>
+                                <span className="sm:hidden">...</span>
+                              </>
                             ) : (
-                              <RefreshCw className="w-4 h-4" />
+                              <>
+                                <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 hidden sm:inline" />
+                                Regenerate
+                              </>
                             )}
-                            <span>Regenerate</span>
                           </Button>
                         </>
                       )}
