@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoginForm from '@/components/app/login-form';
 import RegistrationForm from '@/components/app/registration-form';
 import { ThemeToggle } from '@/components/app/theme-toggle';
+import UserNav from '@/components/app/user-nav';
 import { ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
@@ -54,16 +55,16 @@ export default function LoginPage() {
           <Button
             variant="ghost"
             asChild
-            className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
+            className="whitespace-nowrap transition-all duration-300"
           >
-            <Link href="/topics">Topics</Link>
+            <Link href="/create-post">Create Post</Link>
           </Button>
           <Button
             variant="ghost"
             asChild
             className="whitespace-nowrap transition-all duration-300"
           >
-            <Link href="/create-post">Create Post</Link>
+            <Link href="/analytics">Analytics</Link>
           </Button>
         </nav>
 

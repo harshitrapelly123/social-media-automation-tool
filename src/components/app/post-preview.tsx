@@ -50,10 +50,13 @@ interface PostPreviewProps {
   onToggle: () => void;
   viewMode?: 'desktop' | 'mobile';
   onStartEditing?: (postId: string, mode: 'text' | 'image') => void;
+  isImageLoading?: boolean;
 }
 
-export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing }: PostPreviewProps) {
-  const handleRegenerateClick = () => {
+export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing, isImageLoading = false }: PostPreviewProps) {
+  const handleRegenerateClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling to CollapsibleTrigger
     // Instead of directly regenerating, open the editing panel
     if (onStartEditing) {
       onStartEditing(post.id, 'text');
@@ -63,7 +66,9 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
     }
   };
 
-  const handlePublishClick = () => {
+  const handlePublishClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling to CollapsibleTrigger
     onPublish(post);
   };
 
@@ -131,15 +136,21 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="p-3 pt-0 space-y-3">
-              {isContentLoading ? (
-                  <div className="space-y-2">
-                      <Skeleton className="h-3 w-full" />
-                      <Skeleton className="h-3 w-[90%]" />
-                      <Skeleton className="h-3 w-[80%]" />
-                  </div>
-              ) : (
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{post.content}</p>
-              )}
+            {isContentLoading || post.content === 'Generating content...' ? (
+                <div className="space-y-2">
+                    <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">
+                            Generating your content...
+                        </span>
+                    </div>
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-[90%]" />
+                    <Skeleton className="h-3 w-[80%]" />
+                </div>
+            ) : (
+                <p className="text-sm whitespace-pre-wrap leading-relaxed">{post.content}</p>
+            )}
 
               {displayImage && (
                 <div className="relative w-full overflow-hidden rounded-lg border" style={{
@@ -299,8 +310,14 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="p-4 pt-0 space-y-4">
-            {isContentLoading ? (
+            {isContentLoading || post.content === 'Generating content...' ? (
                 <div className="space-y-2">
+                    <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">
+                            Generating your content...
+                        </span>
+                    </div>
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-[90%]" />
                     <Skeleton className="h-4 w-[80%]" />
@@ -309,7 +326,20 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                 <p className="whitespace-pre-wrap">{post.content}</p>
             )}
 
-            {displayImage && (
+            {isImageLoading ? (
+              <div className="relative w-full overflow-hidden rounded-lg border" style={{
+                aspectRatio: dimensions[post.platform]?.aspectRatio.replace(':', '/') || '16:9'
+              }}>
+                <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">
+                      Generating your image...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : displayImage ? (
               <div className="relative w-full overflow-hidden rounded-lg border" style={{
                 aspectRatio: dimensions[post.platform]?.aspectRatio.replace(':', '/') || '16:9'
               }}>
@@ -323,7 +353,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
-            )}
+            ) : null}
 
             <div className="text-sm text-muted-foreground pt-2">
               {post.platform === 'Instagram' ? (

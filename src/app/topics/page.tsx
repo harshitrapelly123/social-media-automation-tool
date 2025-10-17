@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { TopicsSelection } from '@/components/app/topics-selection';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
+import UserNav from '@/components/app/user-nav';
 import { ArrowLeft } from 'lucide-react';
 
 export default function TopicsPage() {
@@ -60,12 +61,13 @@ export default function TopicsPage() {
               asChild
               className="whitespace-nowrap transition-all duration-300"
             >
-              <Link href="/dashboard/analytics">Analytics</Link>
+              <Link href="/analytics">Analytics</Link>
             </Button>
           </nav>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2 md:gap-4">
             <ThemeToggle />
+            <UserNav />
           </div>
         </header>
 

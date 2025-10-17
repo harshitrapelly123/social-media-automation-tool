@@ -13,15 +13,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const { user } = useFirebase();
 
-  const showDashboardHeader = pathname.startsWith('/dashboard') && user;
+  const showHeader = user && !pathname.startsWith('/login');
 
-  if (!showDashboardHeader) {
+  if (!showHeader) {
     return <>{children}</>;
   }
 
   const navLinks = [
     { href: '/create-post', label: 'Create Post', exact: true },
-    { href: '/dashboard/analytics', label: 'Analytics' },
+    { href: '/analytics', label: 'Analytics' },
   ];
 
   return (

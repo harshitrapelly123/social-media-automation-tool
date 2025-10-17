@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import UserNav from '@/components/app/user-nav';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { PostService } from '@/lib/services/postService';
@@ -25,6 +26,99 @@ import {
   Share2,
   ArrowLeft
 } from 'lucide-react';
+// Simple markdown renderer component
+const SimpleMarkdownRenderer = ({ content }: { content: string }) => {
+  // Split content by lines and process each line
+  const lines = content.split('\n');
+
+  const renderLine = (line: string, index: number) => {
+    // Handle headers (lines starting with #)
+    if (line.startsWith('# ')) {
+      return (
+        <h1 key={index} className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4 mt-6 first:mt-0">
+          {line.substring(2)}
+        </h1>
+      );
+    }
+    if (line.startsWith('## ')) {
+      return (
+        <h2 key={index} className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-3 mt-5 first:mt-0">
+          {line.substring(3)}
+        </h2>
+      );
+    }
+    if (line.startsWith('### ')) {
+      return (
+        <h3 key={index} className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2 mt-4 first:mt-0">
+          {line.substring(4)}
+        </h3>
+      );
+    }
+
+    // Handle bullet points
+    if (line.trim().startsWith('• ')) {
+      return (
+        <div key={index} className="flex items-start space-x-2 mb-2">
+          <span className="text-blue-500 mt-1 flex-shrink-0">•</span>
+          <span className="text-slate-700 dark:text-slate-300">{line.substring(2)}</span>
+        </div>
+      );
+    }
+
+    // Handle numbered lists
+    if (/^\d+\.\s/.test(line.trim())) {
+      const match = line.match(/^(\d+)\.\s(.*)$/);
+      if (match) {
+        return (
+          <div key={index} className="flex items-start space-x-2 mb-2">
+            <span className="text-blue-500 font-medium flex-shrink-0">{match[1]}.</span>
+            <span className="text-slate-700 dark:text-slate-300">{match[2]}</span>
+          </div>
+        );
+      }
+    }
+
+    // Handle bold text (**text**)
+    if (line.includes('**') && line.trim()) {
+      const parts = line.split('**');
+      return (
+        <p key={index} className="mb-3 leading-relaxed">
+          {parts.map((part, i) =>
+            i % 2 === 1 ? (
+              <strong key={i} className="font-semibold text-slate-900 dark:text-slate-100">
+                {part}
+              </strong>
+            ) : (
+              <span key={i}>{part}</span>
+            )
+          )}
+        </p>
+      );
+    }
+
+    // Handle empty lines
+    if (!line.trim()) {
+      return <br key={index} />;
+    }
+
+    // Regular paragraph
+    if (line.trim()) {
+      return (
+        <p key={index} className="mb-3 leading-relaxed text-slate-700 dark:text-slate-300">
+          {line}
+        </p>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className="h-full p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-fade-in">
+      {lines.map((line, index) => renderLine(line, index))}
+    </div>
+  );
+};
 
 export default function GeneratedSummaryPage() {
   const router = useRouter();
@@ -374,7 +468,10 @@ The future holds immense potential for those ready to embrace these innovations.
           (window as any).location.href = '/dashboard';
         } else {
           console.log('No valid auth token found, redirecting to login');
-          (window as any).location.href = '/login';
+          const loginUrl = new URL('/login', window.location.origin);
+          loginUrl.searchParams.set('t', Date.now().toString());
+          loginUrl.searchParams.set('expired', 'true');
+          (window as any).location.href = loginUrl.toString();
         }
       } else {
         // Fallback redirect
@@ -438,18 +535,20 @@ The future holds immense potential for those ready to embrace these innovations.
           <span className="hidden sm:inline">Back</span>
         </Button>
 
-        <div className="flex items-center gap-2 mr-4">
-          <div className="h-8 w-8 md:h-10 md:w-10">
-            <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        <Link href="/">
+          <div className="flex items-center gap-2 mr-4 cursor-pointer">
+            <div className="h-8 w-8 md:h-10 md:w-10">
+              <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+              Post Automation Platform
+            </span>
           </div>
-          <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
-            Post Automation Platform
-          </span>
-        </div>
+        </Link>
 
         <nav className="flex items-center gap-2 overflow-x-auto">
             <Button
@@ -464,12 +563,13 @@ The future holds immense potential for those ready to embrace these innovations.
             asChild
             className="whitespace-nowrap transition-all duration-300"
           >
-            <Link href="/dashboard/analytics">Analytics</Link>
+            <Link href="/analytics">Analytics</Link>
           </Button>
         </nav>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2 md:gap-4">
           <ThemeToggle />
+          <UserNav />
         </div>
       </header>
 
@@ -646,9 +746,7 @@ The future holds immense potential for those ready to embrace these innovations.
                     </div>
                   ) : (
                     <div className="prose prose-lg max-w-none h-full">
-                      <div className="whitespace-pre-wrap text-slate-700 dark:text-slate-300 leading-relaxed h-full p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-fade-in">
-                        {generatedSummary}
-                      </div>
+                      <SimpleMarkdownRenderer content={generatedSummary} />
                       {/* End indicator */}
                       <div className="flex justify-center mt-8 mb-8">
                         <div className="flex items-center space-x-3 text-slate-400 dark:text-slate-500">
@@ -680,7 +778,7 @@ The future holds immense potential for those ready to embrace these innovations.
             </div>
 
             <div className="flex-1 overflow-y-auto p-2" style={{ scrollbarWidth: 'none' }} >
-              <div className="space-y-2 max-w-sm mx-auto">
+              <div className="space-y-2 max-w-sm mx-auto ml-1">
                 {platforms.map((platform) => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatforms.includes(platform.id);
@@ -693,10 +791,10 @@ The future holds immense potential for those ready to embrace these innovations.
                       }`}
                       onClick={() => handlePlatformToggle(platform.id)}
                     >
-                      <div className={`p-2 rounded-lg border-2 transition-all duration-300 ${
+                      <div className={`p-2 border-2 transition-all duration-300 box-border ${
                         isSelected
-                          ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
-                          : 'bg-white/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-600'
+                          ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-md shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-sm w-[calc(100%-2px)]'
+                          : 'bg-white/80 dark:bg-slate-700/80 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/50 dark:hover:bg-slate-600 rounded hover:w-[calc(100%-2px)]'
                       }`}>
                         <div className="flex items-center space-x-2">
                           <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
+import UserNav from '@/components/app/user-nav';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { Sparkles, Wand2, Plus, ArrowLeft } from 'lucide-react';
 import { PostService } from '@/lib/services/postService';
@@ -148,18 +149,20 @@ export default function CreatePostPage() {
             <span className="hidden sm:inline">Back</span>
           </Button>
 
-          <div className="flex items-center gap-2 mr-4">
-            <div className="h-8 w-8 md:h-10 md:w-10">
-              <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          <Link href="/">
+            <div className="flex items-center gap-2 mr-4 cursor-pointer">
+              <div className="h-8 w-8 md:h-10 md:w-10">
+                <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+                Post Automation Platform
+              </span>
             </div>
-            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
-              Post Automation Platform
-            </span>
-          </div>
+          </Link>
 
           <nav className="flex items-center gap-2 overflow-x-auto">
             <Button
@@ -174,12 +177,13 @@ export default function CreatePostPage() {
               asChild
               className="whitespace-nowrap transition-all duration-300"
             >
-              <Link href="/dashboard/analytics">Analytics</Link>
+              <Link href="/analytics">Analytics</Link>
             </Button>
           </nav>
 
           <div className="ml-auto flex items-center gap-2 md:gap-4">
             <ThemeToggle />
+            <UserNav />
           </div>
         </header>
 
@@ -213,7 +217,7 @@ export default function CreatePostPage() {
                     {allTopics.map((topic, index) => (
                       <div
                         key={index}
-                        className={`relative group cursor-pointer transition-all duration-300 hover:scale-105 ${
+                        className={`relative group cursor-pointer transition-all duration-300 flex ${
                           selectedTopics.includes(topic)
                             ? 'transform scale-105'
                             : 'hover:shadow-lg'
@@ -221,7 +225,7 @@ export default function CreatePostPage() {
                         onClick={() => handleTopicToggle(topic)}
                       >
                         <div
-                          className={`relative p-2 md:p-3 rounded-lg border-2 transition-all duration-300 overflow-hidden ${
+                          className={`relative p-2 md:p-3 rounded-lg border-2 transition-all duration-300 overflow-hidden flex-1 min-h-[60px] flex items-center justify-center ${
                             selectedTopics.includes(topic)
                               ? 'bg-white dark:bg-slate-700 border-blue-300 dark:border-blue-600 shadow-lg shadow-blue-500/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20'
                               : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50/30 dark:hover:bg-slate-600'
@@ -230,9 +234,9 @@ export default function CreatePostPage() {
                           {selectedTopics.includes(topic) && (
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 animate-pulse" />
                           )}
-                          <div className="relative">
+                          <div className="relative w-full text-center">
                             <span
-                              className={`font-medium transition-colors duration-300 block text-sm ${
+                              className={`font-medium transition-colors duration-300 block text-sm leading-tight ${
                                 selectedTopics.includes(topic)
                                   ? 'text-slate-800 dark:text-slate-200'
                                   : 'text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400'

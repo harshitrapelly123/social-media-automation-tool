@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -6,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
+import UserNav from '@/components/app/user-nav';
 import { ArrowLeft } from 'lucide-react';
 import AnalyticsDashboard from "@/components/app/analytics-dashboard";
 
@@ -34,18 +34,20 @@ export default function AnalyticsPage() {
                         <span className="hidden sm:inline">Back</span>
                     </Button>
 
-                    <div className="flex items-center gap-2 mr-4">
-                        <div className="h-8 w-8 md:h-10 md:w-10">
-                            <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
+                    <Link href="/">
+                        <div className="flex items-center gap-2 mr-4 cursor-pointer">
+                            <div className="h-8 w-8 md:h-10 md:w-10">
+                                <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </div>
+                            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+                                Post Automation Platform
+                            </span>
                         </div>
-                        <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
-                            Post Automation Platform
-                        </span>
-                    </div>
+                    </Link>
 
                     <nav className="flex items-center gap-2 overflow-x-auto">
                         <Button
@@ -60,12 +62,13 @@ export default function AnalyticsPage() {
                             asChild
                             className="whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
                         >
-                            <Link href="/dashboard/analytics">Analytics</Link>
+                            <Link href="/analytics">Analytics</Link>
                         </Button>
                     </nav>
 
-                    <div className="ml-auto">
+                    <div className="ml-auto flex items-center gap-2 md:gap-4">
                         <ThemeToggle />
+                        <UserNav />
                     </div>
                 </header>
 

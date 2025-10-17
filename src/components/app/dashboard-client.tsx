@@ -16,10 +16,11 @@ import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Ima
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/app/theme-toggle';
+import UserNav from '@/components/app/user-nav';
 import { PostService } from '@/lib/services/postService';
 
 
@@ -41,7 +42,7 @@ export default function DashboardClient({
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const userDocRef = useMemoFirebase(() => {
+  const userDocRef = useMemo(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
@@ -87,6 +88,8 @@ export default function DashboardClient({
   const [editingMode, setEditingMode] = useState<'text' | 'image' | null>(null);
   const [editingDescription, setEditingDescription] = useState('');
   const [isGeneratingEdit, setIsGeneratingEdit] = useState(false);
+  const [regeneratingImagePostId, setRegeneratingImagePostId] = useState<string | null>(null);
+  const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
 
   // Store platform IDs for API calls
   const [platformIds, setPlatformIds] = useState<{[key: string]: string}>({});
@@ -162,16 +165,25 @@ export default function DashboardClient({
         const token = document.cookie.split(';').find(row => row.trim().startsWith('token='))?.split('=')[1];
         const accessToken = document.cookie.split(';').find(row => row.trim().startsWith('access_token='))?.split('=')[1];
 
-        console.log('Dashboard auth check:', {
+        console.log('🔐 Dashboard auth check:', {
           hasToken: !!token,
+          tokenLength: token?.length || 0,
           hasAccessToken: !!accessToken,
+          accessTokenLength: accessToken?.length || 0,
           userExists: !!user,
-          isUserLoading
+          isUserLoading,
+          allCookies: document.cookie.split(';').filter(c => c.trim()).map(c => {
+            const [name, value] = c.split('=');
+            return { name: name?.trim(), length: value?.length || 0 };
+          })
         });
 
         if (!token && !accessToken && !user) {
-          console.log('No authentication found, redirecting to login');
-          router.push('/login');
+          console.log('🚫 No authentication found, redirecting to login');
+          const loginUrl = new URL('/login', window.location.origin);
+          loginUrl.searchParams.set('t', Date.now().toString());
+          loginUrl.searchParams.set('expired', 'true');
+          window.location.href = loginUrl.toString();
           return;
         }
       }
@@ -220,10 +232,25 @@ export default function DashboardClient({
               })).filter((p: any) => p.summary_id));
 
               setPosts(newPosts);
+
+              // Set loading state for images
+              const loadingImageSet = new Set<string>();
+              newPosts.forEach(post => {
+                if (post.image) {
+                  loadingImageSet.add(post.id);
+                }
+              });
+              setLoadingImages(loadingImageSet);
+
               setLoading(false);
 
               // Clear the platform content data after using it
               localStorage.removeItem('dashboardPlatformContent');
+
+              // Simulate image loading time and clear loading state after 2 seconds
+              setTimeout(() => {
+                setLoadingImages(new Set());
+              }, 2000);
 
               // Prevent auto-scroll by setting focus to body after posts are loaded
               setTimeout(() => {
@@ -244,49 +271,10 @@ export default function DashboardClient({
           }
         }
 
-        // Fallback to generating initial posts if no platform content data
-        console.log('No platform content data found, generating initial posts');
-        try {
-          const result = await generateInitialPosts({ topics, platforms });
-          const newPosts: Post[] = result.posts.map((p, index) => {
-            const randomImage = placeholderImages[index % placeholderImages.length];
-            return {
-              id: `${p.platform.toLowerCase()}-${Date.now()}`,
-              platform: p.platform,
-              content: p.content,
-              image: randomImage.imageUrl,
-              imageHint: randomImage.imageHint,
-              author: {
-                name: user?.displayName || 'Post Automation Platform User',
-                avatar: user?.photoURL || 'https://picsum.photos/seed/user/40/40',
-              },
-            };
-          });
-          setPosts(newPosts);
-
-          // Prevent auto-scroll by setting focus to body after posts are loaded
-          setTimeout(() => {
-            if (document.body) {
-              document.body.focus();
-            }
-          }, 100);
-        } catch (e) {
-          console.error(e);
-          const errorMessage =
-            e instanceof Error
-              ? e.message
-              : 'Could not generate posts. The AI service may be temporarily unavailable.';
-          setError(
-            `Failed to generate initial posts. Please try again later. Error: ${errorMessage}`
-          );
-          toast({
-            variant: 'destructive',
-            title: 'Generation Error',
-            description: errorMessage,
-          });
-        } finally {
-          setLoading(false);
-        }
+        // If no platform content data exists, show simple message instead of generating posts
+        console.log('No platform content data found, showing simple message');
+        setLoading(false);
+        return;
       } else {
         setLoading(false);
       }
@@ -325,8 +313,13 @@ export default function DashboardClient({
 
       const originalPost = posts[postIndex];
 
+      // Set loading state with animated content
       setPosts(prev =>
-        prev.map(p => (p.id === postId ? { ...p, content: '...' } : p))
+        prev.map(p => (p.id === postId ? {
+          ...p,
+          content: 'Generating content...',
+          image: p.image // Keep original image during regeneration
+        } : p))
       );
 
       try {
@@ -410,9 +403,13 @@ export default function DashboardClient({
 
     try {
       if (editingMode === 'text') {
-        // Handle text editing with API call
+        // Handle text editing with API call and enhanced loading animation
         setPosts(prev =>
-          prev.map(p => (p.id === editingPostId ? { ...p, content: 'Generating content...' } : p))
+          prev.map(p => (p.id === editingPostId ? {
+            ...p,
+            content: 'Generating content...',
+            image: p.image // Keep original image during text regeneration
+          } : p))
         );
 
         try {
@@ -493,6 +490,8 @@ export default function DashboardClient({
         }
       } else if (editingMode === 'image') {
         // Handle image editing with API call
+        setRegeneratingImagePostId(editingPostId);
+
         try {
           // Get platform ID for the current post
           const platformId = platformIds[platformKey];
@@ -589,6 +588,7 @@ export default function DashboardClient({
       }
     } finally {
       setIsGeneratingEdit(false);
+      setRegeneratingImagePostId(null);
     }
   };
 
@@ -627,6 +627,81 @@ export default function DashboardClient({
   // Get the current post being edited
   const editingPost = editingPostId ? posts.find(p => p.id === editingPostId) : null;
 
+  // If no posts (no platform content data), show simple message
+  if (posts.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-gradient-to-br from-indigo-400/15 to-cyan-400/15 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse delay-500" />
+        </div>
+
+        <div className="relative z-10">
+          {/* Header */}
+          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-6 backdrop-blur-sm md:px-8 lg:px-12">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+
+            <Link href="/">
+              <div className="flex items-center gap-2 mr-4 cursor-pointer">
+                <div className="h-8 w-8 md:h-10 md:w-10">
+                  <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+                  Post Automation Platform
+                </span>
+              </div>
+            </Link>
+
+            <nav className="flex items-center gap-2 overflow-x-auto">
+              <Button
+                variant="ghost"
+                asChild
+                className="whitespace-nowrap transition-all duration-300"
+              >
+                <Link href="/create-post">Create Post</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                asChild
+                className="whitespace-nowrap transition-all duration-300"
+              >
+                <Link href="/analytics">Analytics</Link>
+              </Button>
+            </nav>
+
+            <div className="ml-auto flex items-center gap-2 md:gap-4">
+              <UserNav />
+              <ThemeToggle />
+            </div>
+          </header>
+
+          {/* Simple Message */}
+          <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+                Not selected platforms
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Background decorative elements */}
@@ -649,18 +724,20 @@ export default function DashboardClient({
             <span className="hidden sm:inline">Back</span>
           </Button>
 
-          <div className="flex items-center gap-2 mr-4">
-            <div className="h-8 w-8 md:h-10 md:w-10">
-              <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          <Link href="/">
+            <div className="flex items-center gap-2 mr-4 cursor-pointer">
+              <div className="h-8 w-8 md:h-10 md:w-10">
+                <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+                Post Automation Platform
+              </span>
             </div>
-            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
-              Post Automation Platform
-            </span>
-          </div>
+          </Link>
 
           <nav className="flex items-center gap-2 overflow-x-auto">
             <Button
@@ -675,11 +752,12 @@ export default function DashboardClient({
               asChild
               className="whitespace-nowrap transition-all duration-300"
             >
-              <Link href="/dashboard/analytics">Analytics</Link>
+              <Link href="/analytics">Analytics</Link>
             </Button>
           </nav>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2 md:gap-4">
+            <UserNav />
             <ThemeToggle />
           </div>
         </header>
@@ -767,6 +845,7 @@ export default function DashboardClient({
                     }}
                     viewMode={viewMode}
                     onStartEditing={handleStartEditing}
+                    isImageLoading={regeneratingImagePostId === post.id || loadingImages.has(post.id)}
                   />
                 ))}
               </div>
@@ -799,7 +878,7 @@ export default function DashboardClient({
                             className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
                           >
                             <FileText className="h-4 w-4" />
-                            Description
+                            Text
                           </Button>
                           <Button
                             variant="outline"

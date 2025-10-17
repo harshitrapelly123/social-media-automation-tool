@@ -11,10 +11,11 @@ export default function Home() {
   const router = useRouter();
 
   const handleCreatePost = () => {
-    // Check if user is authenticated
+    // Check if user is authenticated by checking multiple storage types
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') || document.cookie.split('token=')[1]?.split(';')[0] : null;
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') || document.cookie.split('access_token=')[1]?.split(';')[0] : null;
 
-    if (token) {
+    if (token || accessToken) {
       router.push('/create-post');
     } else {
       router.push('/login');
