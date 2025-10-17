@@ -114,23 +114,37 @@ export default function UserNav() {
         localStorage.clear();
         sessionStorage.clear();
 
-        // Clear cookies (non-HttpOnly)
+        // Clear specific authentication cookies that middleware checks
+        const authCookies = ['token', 'access_token', 'firebase:authUser:*:*'];
+        const domains = [
+          window.location.hostname,
+          "." + window.location.hostname,
+          "localhost",
+          ".localhost"
+        ];
+        const paths = ['/', '/login', '/dashboard', '/create-post', '/analytics', '/generated-summary'];
+
+        // Clear each auth cookie for all domains and paths
+        authCookies.forEach(cookieName => {
+          domains.forEach(domain => {
+            paths.forEach(path => {
+              document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${path};domain=${domain};SameSite=Lax`;
+            });
+          });
+        });
+
+        // Also clear any other cookies (fallback)
         document.cookie.split(";").forEach(cookie => {
           const eqPos = cookie.indexOf("=");
           const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-          const domains = [
-            window.location.hostname,
-            "." + window.location.hostname
-          ];
-
-          domains.forEach(domain => {
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${domain}`;
-          });
-          // Clear for current path as well
-          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          if (name && (name.includes('auth') || name.includes('token') || name.includes('firebase'))) {
+            domains.forEach(domain => {
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${domain};SameSite=Lax`;
+            });
+          }
         });
 
-        console.log("✅ Cleared all client-side auth data");
+        console.log("✅ Cleared all client-side auth data including specific auth cookies");
       } catch (err) {
         console.error("Error clearing local data:", err);
       }

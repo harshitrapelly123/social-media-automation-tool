@@ -26,6 +26,7 @@ import {
   Share2,
   ArrowLeft
 } from 'lucide-react';
+import { useAuthCheck } from '@/hooks/use-auth-check';
 // Simple markdown renderer component
 const SimpleMarkdownRenderer = ({ content }: { content: string }) => {
   // Split content by lines and process each line
@@ -133,6 +134,9 @@ export default function GeneratedSummaryPage() {
   const [generatedSummary, setGeneratedSummary] = useState('');
   const [summaryId, setSummaryId] = useState<string>('');
   const [hasLoadedData, setHasLoadedData] = useState(false);
+
+  // Check authentication on page load
+  useAuthCheck({ checkOnMount: true });
 
   // Load data from localStorage and generate summary
   useEffect(() => {

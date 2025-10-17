@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/app/theme-toggle';
 import { Sparkles, Wand2, Plus, ArrowLeft } from 'lucide-react';
 import { PostService } from '@/lib/services/postService';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthCheck } from '@/hooks/use-auth-check';
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function CreatePostPage() {
   const [manualTopic, setManualTopic] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [addedTopics, setAddedTopics] = useState<string[]>([]);
+
+  // Check authentication on page load
+  useAuthCheck({ checkOnMount: true });
 
   const defaultTopics = [
     'Artificial Intelligence',

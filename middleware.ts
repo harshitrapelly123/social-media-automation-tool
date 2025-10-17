@@ -89,6 +89,7 @@ export function middleware(request: NextRequest) {
     }
 
     const loginUrl = new URL("/login", origin);
+    loginUrl.searchParams.set("expired", "true");
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,23 @@ import { ThemeToggle } from '@/components/app/theme-toggle';
 import UserNav from '@/components/app/user-nav';
 import { ArrowLeft } from 'lucide-react';
 import AnalyticsDashboard from "@/components/app/analytics-dashboard";
+import { useAuthCheck } from '@/hooks/use-auth-check';
+import { AuthUtils } from '@/lib/services/authService';
 
 export default function AnalyticsPage() {
     const router = useRouter();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    // Check authentication on page load
+    useAuthCheck({
+        checkOnMount: true,
+        showToast: true
+    });
+
+    // Set authentication state after component mounts
+    useEffect(() => {
+        setIsAuthenticated(AuthUtils.isAuthenticated());
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -74,7 +89,16 @@ export default function AnalyticsPage() {
 
                 {/* Main Content */}
                 <div className="container mx-auto p-4 md:p-6 lg:p-8">
-                    <AnalyticsDashboard />
+                    {isAuthenticated ? (
+                        <AnalyticsDashboard />
+                    ) : (
+                        <div className="flex items-center justify-center h-64">
+                            <div className="text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                                <p className="text-slate-600 dark:text-slate-300">Redirecting to login...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

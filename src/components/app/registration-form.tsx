@@ -89,8 +89,10 @@ export default function RegistrationForm({ onRegisterSuccess }: RegistrationForm
         description: 'Welcome to the platform! Please log in with your new account.',
       });
 
-      // Redirect to login page after successful registration
-      router.push('/login');
+      // Redirect to login page with fromRegister parameter to ensure login tab is shown
+      const loginUrl = new URL('/login', window.location.origin);
+      loginUrl.searchParams.set('fromRegister', 'true');
+      router.push(loginUrl.pathname + loginUrl.search);
     } catch (error: any) {
       // Don't log to console to avoid popup errors - error handling is done via toast
 

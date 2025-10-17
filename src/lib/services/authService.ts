@@ -18,6 +18,51 @@ export interface RegisterResponse {
   };
 }
 
+// Authentication utility functions
+export const AuthUtils = {
+  // Check if user is authenticated
+  isAuthenticated: (): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+    const cookieToken = document.cookie.split(';').find(row => row.trim().startsWith('token='))?.split('=')[1];
+    const cookieAccessToken = document.cookie.split(';').find(row => row.trim().startsWith('access_token='))?.split('=')[1];
+
+    return !!(token || cookieToken || cookieAccessToken);
+  },
+
+  // Get authentication token
+  getToken: (): string | null => {
+    if (typeof window === 'undefined') return null;
+
+    // Check localStorage first
+    const localToken = localStorage.getItem('token') || localStorage.getItem('access_token');
+
+    // Check cookies as fallback
+    const cookieToken = document.cookie.split(';').find(row => row.trim().startsWith('token='))?.split('=')[1];
+    const cookieAccessToken = document.cookie.split(';').find(row => row.trim().startsWith('access_token='))?.split('=')[1];
+
+    return localToken || cookieToken || cookieAccessToken || null;
+  },
+
+  // Clear all authentication data
+  clearAuthData: (): void => {
+    if (typeof window === 'undefined') return;
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
+
+    // Clear auth cookies
+    const authCookies = ['token', 'access_token'];
+    authCookies.forEach(cookieName => {
+      document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+    });
+  }
+};
+
 export const AuthService = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
     try {

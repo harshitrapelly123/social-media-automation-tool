@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,11 +11,32 @@ import LoginForm from '@/components/app/login-form';
 import RegistrationForm from '@/components/app/registration-form';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import UserNav from '@/components/app/user-nav';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const [tab, setTab] = useState('login');
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Check for session expired or logout parameters
+    const expired = searchParams.get('expired');
+    const logout = searchParams.get('logout');
+    const fromRegister = searchParams.get('fromRegister');
+
+    if (expired === 'true' || logout === 'true') {
+      setShowSessionExpired(true);
+      // Auto-hide the message after 5 seconds
+      setTimeout(() => setShowSessionExpired(false), 5000);
+    }
+
+    // If redirected from registration, ensure login tab is active
+    if (fromRegister === 'true') {
+      setTab('login');
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col">
@@ -38,18 +59,20 @@ export default function LoginPage() {
           <span className="hidden sm:inline">Back</span>
         </Button>
 
-        <div className="flex items-center gap-2 mr-4">
-          <div className="h-8 w-8 md:h-10 md:w-10">
-            <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        <Link href="/">
+          <div className="flex items-center gap-2 mr-4 cursor-pointer">
+            <div className="h-8 w-8 md:h-10 md:w-10">
+              <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
+              Post Automation Platform
+            </span>
           </div>
-          <span className="font-headline text-lg md:text-xl font-semibold hidden sm:inline-block text-slate-800 dark:text-slate-200">
-            Post Automation Platform
-          </span>
-        </div>
+        </Link>
 
         <nav className="flex items-center gap-2 overflow-x-auto">
           <Button
@@ -75,6 +98,16 @@ export default function LoginPage() {
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full p-4">
         <div className="w-full max-w-md space-y-8">
+          {/* Session Expired Alert */}
+          {showSessionExpired && (
+            <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800 dark:text-orange-200">
+                Your session has expired. Please sign in again to continue.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="text-center">
             <div className="mx-auto mb-6 h-16 w-16 md:h-20 md:w-20">
               <PostAutomationPlatformIcon />
