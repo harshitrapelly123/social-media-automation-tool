@@ -11,7 +11,7 @@ import LoginForm from '@/components/app/login-form';
 import RegistrationForm from '@/components/app/registration-form';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import UserNav from '@/components/app/user-nav';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
@@ -98,6 +98,16 @@ export default function LoginPage() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="w-9 h-9 p-0"
+          >
+            <Link href="/profile">
+              <User className="w-4 h-4" />
+            </Link>
+          </Button>
           <ThemeToggle />
         </div>
       </header>

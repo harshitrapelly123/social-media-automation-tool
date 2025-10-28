@@ -14,13 +14,13 @@ import {z} from 'genkit';
 
 const GenerateInitialPostsInputSchema = z.object({
   topics: z.array(z.string()).describe('List of topics based on user preferences.'),
-  platforms: z.array(z.enum(['Facebook', 'Twitter', 'Instagram', 'LinkedIn'])).describe('Social media platforms.'),
+  platforms: z.array(z.enum(['Facebook', 'X', 'Instagram', 'LinkedIn'])).describe('Social media platforms.'),
 });
 
 export type GenerateInitialPostsInput = z.infer<typeof GenerateInitialPostsInputSchema>;
 
 const PostSchema = z.object({
-  platform: z.enum(['Facebook', 'Twitter', 'Instagram', 'LinkedIn']).describe('The social media platform for this specific post.'),
+  platform: z.enum(['Facebook', 'X', 'Instagram', 'LinkedIn']).describe('The social media platform for this specific post.'),
   content: z.string().describe('The generated content for the post.'),
 });
 

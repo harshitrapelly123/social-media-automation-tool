@@ -24,7 +24,8 @@ import {
   CheckCircle,
   Copy,
   Share2,
-  ArrowLeft
+  ArrowLeft,
+  User
 } from 'lucide-react';
 import { useAuthCheck } from '@/hooks/use-auth-check';
 // Simple markdown renderer component - Mobile-optimized
@@ -517,7 +518,7 @@ The future holds immense potential for those ready to embrace these innovations.
   };
 
   const platforms = [
-    { id: 'twitter', name: 'X (Twitter)', icon: Twitter },
+    { id: 'x', name: 'X', icon: Twitter },
     { id: 'linkedin', name: 'LinkedIn', icon: Linkedin },
     { id: 'instagram', name: 'Instagram', icon: Instagram },
     { id: 'facebook', name: 'Facebook', icon: Facebook }
@@ -577,6 +578,16 @@ The future holds immense potential for those ready to embrace these innovations.
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="w-9 h-9 p-0"
+          >
+            <Link href="/profile">
+              <User className="w-4 h-4" />
+            </Link>
+          </Button>
           <ThemeToggle />
           <UserNav />
         </div>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import UserNav from '@/components/app/user-nav';
 import { ThemeToggle } from '@/components/app/theme-toggle';
-import { Sparkles, Wand2, Plus, ArrowLeft } from 'lucide-react';
+import { Sparkles, Wand2, Plus, ArrowLeft, User } from 'lucide-react';
 import { PostService } from '@/lib/services/postService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthCheck } from '@/hooks/use-auth-check';
@@ -186,6 +186,16 @@ export default function CreatePostPage() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="w-9 h-9 p-0"
+            >
+              <Link href="/profile">
+                <User className="w-4 h-4" />
+              </Link>
+            </Button>
             <ThemeToggle />
             <UserNav />
           </div>

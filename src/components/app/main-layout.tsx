@@ -22,6 +22,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const navLinks = [
     { href: '/create-post', label: 'Create Post', exact: true },
     { href: '/analytics', label: 'Analytics' },
+    { href: '/profile', label: 'User Profile' },
   ];
 
   return (

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import UserNav from '@/components/app/user-nav';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 import AnalyticsDashboard from "@/components/app/analytics-dashboard";
 import { useAuthCheck } from '@/hooks/use-auth-check';
 import { AuthUtils } from '@/lib/services/authService';
@@ -82,6 +82,16 @@ export default function AnalyticsPage() {
                     </nav>
 
                     <div className="ml-auto flex items-center gap-2 md:gap-4">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="w-9 h-9 p-0"
+                        >
+                            <Link href="/profile">
+                                <User className="w-4 h-4" />
+                            </Link>
+                        </Button>
                         <ThemeToggle />
                         <UserNav />
                     </div>

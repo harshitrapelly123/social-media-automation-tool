@@ -126,7 +126,7 @@ export const PostService = {
 
         // If no platforms in localStorage, use all platforms as fallback
         if (platforms.length === 0) {
-          platforms = ['Twitter', 'Facebook', 'Instagram', 'LinkedIn'];
+          platforms = ['X', 'Facebook', 'Instagram', 'LinkedIn'];
         }
       }
 

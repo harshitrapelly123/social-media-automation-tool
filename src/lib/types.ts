@@ -1,6 +1,6 @@
 import { LucideIcon, Heart, MessageCircle, Share2, Linkedin, Twitter, Instagram, Facebook, Eye, Repeat, Bookmark, ThumbsUp, BarChart } from 'lucide-react';
 
-export type Platform = 'Facebook' | 'Twitter' | 'Instagram' | 'LinkedIn';
+export type Platform = 'Facebook' | 'X' | 'Instagram' | 'LinkedIn';
 
 export type Topic =
   | 'Technology'
@@ -65,7 +65,7 @@ export interface AnalyticsPost extends Post {
 
 export const platformIcons: { [key in Platform]: LucideIcon } = {
   Facebook: Facebook,
-  Twitter: Twitter,
+  X: Twitter,
   Instagram: Instagram,
   LinkedIn: Linkedin,
 };
@@ -96,7 +96,7 @@ export const platformDimensions: { [key in Platform]: PlatformDimensions } = {
     usage: 'Feed posts and shared links',
     notes: 'Maintain professional composition; space for copy above/below',
   },
-  Twitter: {
+  X: {
     recommended: '1600 × 900 px',
     aspectRatio: '16:9',
     usage: 'Post preview images',
@@ -111,7 +111,7 @@ export const defaultEngagementMetrics: { [key in Platform]: EngagementMetric[] }
     { label: 'Shares', value: '112', icon: Share2, change: '-3%', changeType: 'negative' },
     { label: 'Reach', value: '15.7k', icon: Eye, change: '+8%', changeType: 'positive' },
   ],
-  Twitter: [
+  X: [
     { label: 'Likes', value: '890', icon: Heart, change: '+15%', changeType: 'positive' },
     { label: 'Retweets', value: '230', icon: Repeat, change: '+20%', changeType: 'positive' },
     { label: 'Replies', value: '75', icon: MessageCircle, change: '+10%', changeType: 'positive' },

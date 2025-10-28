@@ -50,7 +50,7 @@ const { placeholderImages } = placeholderData;
 
 const platformIconColors: { [key in Platform]: string } = {
     Facebook: 'bg-blue-100 dark:bg-blue-900/50',
-    Twitter: 'bg-sky-100 dark:bg-sky-900/50',
+    X: 'bg-sky-100 dark:bg-sky-900/50',
     Instagram: 'bg-rose-100 dark:bg-rose-900/50',
     LinkedIn: 'bg-indigo-100 dark:bg-indigo-900/50',
 };
@@ -100,8 +100,8 @@ const getPlatformIcon = (platformName: string) => {
   const platformNameMap: { [key: string]: Platform } = {
     'facebook': 'Facebook',
     'fb': 'Facebook',
-    'twitter': 'Twitter',
-    'x': 'Twitter', // Twitter rebranded to X
+    'twitter': 'X',
+    'x': 'X', // Twitter rebranded to X
     'instagram': 'Instagram',
     'ig': 'Instagram',
     'linkedin': 'LinkedIn',

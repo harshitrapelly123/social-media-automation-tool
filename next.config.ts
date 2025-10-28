@@ -40,6 +40,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'static.vecteezy.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pimpmytype.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

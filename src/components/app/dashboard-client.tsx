@@ -12,7 +12,7 @@ import placeholderData from '@/lib/placeholder-images.json';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon, ArrowLeft, Send } from 'lucide-react';
+import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon, ArrowLeft, Send, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -21,10 +21,12 @@ import { doc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import UserNav from '@/components/app/user-nav';
+import UserProfile from '@/components/app/user-profile';
 import { PostService } from '@/lib/services/postService';
+import { cn } from '@/lib/utils';
 
 
-const allPlatforms: Platform[] = ['Facebook', 'Twitter', 'Instagram', 'LinkedIn'];
+const allPlatforms: Platform[] = ['Facebook', 'X', 'Instagram', 'LinkedIn'];
 const { placeholderImages } = placeholderData;
 const defaultTopics: Topic[] = ['Technology', 'Health & Wellness'];
 
@@ -146,7 +148,7 @@ export default function DashboardClient({
           if (parsedPlatforms.length > 0) {
             // Convert platform IDs to Platform type
             const platformMap: Record<string, Platform> = {
-              'twitter': 'Twitter',
+              'twitter': 'X',
               'linkedin': 'LinkedIn',
               'instagram': 'Instagram',
               'facebook': 'Facebook'
@@ -264,7 +266,7 @@ export default function DashboardClient({
                 .map((platform: any) => {
                   // Map platform names to match the expected format
                   const platformNameMap: Record<string, Platform> = {
-                    'twitter': 'Twitter',
+                    'twitter': 'X',
                     'facebook': 'Facebook',
                     'instagram': 'Instagram',
                     'linkedin': 'LinkedIn'
@@ -752,24 +754,38 @@ export default function DashboardClient({
               </div>
             </Link>
 
-            <nav className="flex items-center gap-2 overflow-x-auto">
-              <Button
-                variant="ghost"
-                asChild
-                className="whitespace-nowrap transition-all duration-300"
-              >
-                <Link href="/create-post">Create Post</Link>
-              </Button>
-              <Button
-                variant="ghost"
-                asChild
-                className="whitespace-nowrap transition-all duration-300"
-              >
-                <Link href="/analytics">Analytics</Link>
-              </Button>
-            </nav>
+          <nav className="flex items-center gap-2 overflow-x-auto">
+            <Button
+              variant="ghost"
+              asChild
+              className="whitespace-nowrap transition-all duration-300"
+            >
+              <Link href="/create-post">Create Post</Link>
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className={cn(
+                "whitespace-nowrap transition-all duration-300",
+                pathname?.includes('/analytics') ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl" : ""
+              )}
+            >
+              <Link href="/analytics">Analytics</Link>
+            </Button>
+          </nav>
 
             <div className="ml-auto flex items-center gap-2 md:gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="w-9 h-9 p-0"
+              >
+                <Link href="/profile">
+                  <User className="w-4 h-4" />
+                </Link>
+              </Button>
+              <UserProfile />
               <UserNav />
               <ThemeToggle />
             </div>
@@ -836,16 +852,29 @@ export default function DashboardClient({
             <Button
               variant="ghost"
               asChild
-              className="whitespace-nowrap transition-all duration-300"
+              className={cn(
+                "whitespace-nowrap transition-all duration-300",
+                pathname?.includes('/analytics') && "bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl"
+              )}
             >
               <Link href="/analytics">Analytics</Link>
             </Button>
           </nav>
 
-          <div className="ml-auto flex items-center gap-2 md:gap-4">
-            <UserNav />
-            <ThemeToggle />
-          </div>
+            <div className="ml-auto flex items-center gap-2 md:gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="w-9 h-9 p-0"
+              >
+                <Link href="/profile">
+                  <User className="w-4 h-4" />
+                </Link>
+              </Button>
+              <ThemeToggle />
+              <UserNav />
+            </div>
         </header>
 
         {/* Main Content */}
