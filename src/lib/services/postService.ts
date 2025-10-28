@@ -94,6 +94,61 @@ export const PostService = {
     }
   },
 
+  generateContentForDashboard: async (): Promise<GenerateContentResponse> => {
+    try {
+      console.log('PostService.generateContentForDashboard called');
+
+      // Try to get summary_id and platforms from localStorage
+      let summaryId = '';
+      let platforms: string[] = [];
+
+      if (typeof window !== 'undefined') {
+        // Get summary_id
+        const generatedSummaryData = localStorage.getItem('generatedSummaryData');
+        if (generatedSummaryData) {
+          try {
+            const parsed = JSON.parse(generatedSummaryData);
+            summaryId = parsed.summaryId || '';
+          } catch (error) {
+            console.warn('Error parsing generatedSummaryData:', error);
+          }
+        }
+
+        // Get selected platforms
+        const selectedPlatformsData = localStorage.getItem('dashboardSelectedPlatforms');
+        if (selectedPlatformsData) {
+          try {
+            platforms = JSON.parse(selectedPlatformsData);
+          } catch (error) {
+            console.warn('Error parsing selectedPlatformsData:', error);
+          }
+        }
+
+        // If no platforms in localStorage, use all platforms as fallback
+        if (platforms.length === 0) {
+          platforms = ['Twitter', 'Facebook', 'Instagram', 'LinkedIn'];
+        }
+      }
+
+      const requestBody: any = {};
+      if (summaryId) {
+        requestBody.summary_id = summaryId;
+      }
+      if (platforms.length > 0) {
+        requestBody.platforms = platforms;
+      }
+
+      console.log('PostService.generateContentForDashboard request body:', requestBody);
+
+      const response = await apiClient.post<GenerateContentResponse>("/posts/generate-content", requestBody);
+      console.log('PostService.generateContentForDashboard response:', response);
+      return response;
+    } catch (error: any) {
+      console.error('PostService.generateContentForDashboard error:', error);
+      throw error;
+    }
+  },
+
   regeneratePostText: async (platformId: string, userSuggestions: string): Promise<{regenerated_content: string}> => {
     try {
       console.log('PostService.regeneratePostText called with platformId:', platformId, 'userSuggestions:', userSuggestions);

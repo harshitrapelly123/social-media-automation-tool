@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import { usePathname } from 'next/navigation';
 import { PostAutomationPlatformIcon } from '@/components/app/post-automation-platform-icon';

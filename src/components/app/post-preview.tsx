@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import type { Post, platformDimensions, defaultEngagementMetrics } from '@/lib/types';
 import { platformDimensions as dimensions, defaultEngagementMetrics as metrics } from '@/lib/types';
-import { Sparkles, Repeat, MessageCircle, Heart, Share2, Upload, ChevronDown } from 'lucide-react';
+import { Sparkles, Repeat, MessageCircle, Heart, Share2, Upload, ChevronDown, Send } from 'lucide-react';
 
 // Social media platform icons - matching the reference image
 const platformIcons = {
@@ -45,6 +45,7 @@ interface PostPreviewProps {
   onRegenerate: (postId: string, edits: string) => Promise<void>;
   onDelete: (postId: string) => void;
   onPublish: (post: Post) => void;
+  onPost?: (post: Post) => void;
   globalImageUri: string | undefined;
   isOpen: boolean;
   onToggle: () => void;
@@ -53,7 +54,7 @@ interface PostPreviewProps {
   isImageLoading?: boolean;
 }
 
-export default function PostPreview({ post, onRegenerate, onDelete, onPublish, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing, isImageLoading = false }: PostPreviewProps) {
+export default function PostPreview({ post, onRegenerate, onDelete, onPublish, onPost, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing, isImageLoading = false }: PostPreviewProps) {
   const handleRegenerateClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent event bubbling to CollapsibleTrigger
@@ -72,6 +73,14 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
     onPublish(post);
   };
 
+  const handlePostClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling to CollapsibleTrigger
+    if (onPost) {
+      onPost(post);
+    }
+  };
+
 
   
   const isContentLoading = post.content === '...';
@@ -80,7 +89,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
   // Mobile view layout
   if (viewMode === 'mobile') {
     return (
-      <Card className="w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 w-full max-w-sm mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <Collapsible open={isOpen} onOpenChange={onToggle}>
           <CollapsibleTrigger asChild>
             <CardHeader className="flex flex-row items-start justify-between space-x-0 p-3 cursor-pointer hover:bg-muted/50 transition-colors">
@@ -119,6 +128,15 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                   className="h-7 w-7 p-0"
                 >
                   <Sparkles className="h-3 w-3" />
+                </Button>
+                <Button
+                  onClick={handlePostClick}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7 p-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white border-green-500"
+                  title="Post"
+                >
+                  <Send className="h-3 w-3" />
                 </Button>
                 <Button
                   onClick={handlePublishClick}
@@ -251,7 +269,7 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
 
   // Desktop view layout (original)
   return (
-    <Card className="w-full max-w-2xl mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 w-full max-w-2xl mx-auto overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       <Collapsible open={isOpen} onOpenChange={onToggle}>
         <CollapsibleTrigger asChild>
           <CardHeader className="flex flex-row items-start justify-between space-x-0 p-4 cursor-pointer hover:bg-muted/50 transition-colors">
@@ -293,6 +311,15 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, g
                 className="h-8"
               >
                 <Sparkles className="h-3 w-3" />
+              </Button>
+              <Button
+                onClick={handlePostClick}
+                variant="outline"
+                size="sm"
+                className="h-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white border-green-500"
+                title="Post"
+              >
+                <Send className="h-3 w-3" />
               </Button>
               <Button
                 onClick={handlePublishClick}

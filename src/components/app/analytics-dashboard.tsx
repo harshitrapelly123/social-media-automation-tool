@@ -129,7 +129,7 @@ function PlatformPostCard({ platform, summary }: { platform: PlatformData; summa
   const truncatedText = shouldTruncate ? platform.post_text.substring(0, 100) + '...' : platform.post_text;
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+    <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

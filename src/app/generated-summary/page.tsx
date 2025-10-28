@@ -430,8 +430,13 @@ The future holds immense potential for those ready to embrace these innovations.
       const contentResponse = await PostService.generateContent(summaryId, mappedPlatforms);
       console.log('Content generation response:', contentResponse);
 
-      // Step 4: Save the platform content data to localStorage for the dashboard
+      // Step 4: Clear old dashboard data and save new platform content data to localStorage for the dashboard
       if (typeof window !== 'undefined') {
+        // Clear old dashboard data to prevent stale data issues
+        localStorage.removeItem('dashboardPlatformContent');
+        localStorage.removeItem('dashboardSelectedPlatforms');
+        localStorage.removeItem('dashboardPosts');
+
         localStorage.setItem('finalSummaryData', JSON.stringify({
           selectedTopics,
           summary: generatedSummary,

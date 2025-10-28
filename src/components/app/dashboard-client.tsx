@@ -12,7 +12,7 @@ import placeholderData from '@/lib/placeholder-images.json';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Terminal, ChevronDown, ChevronUp, Smartphone, Monitor, X, FileText, Image as ImageIcon, ArrowLeft, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -135,7 +135,9 @@ export default function DashboardClient({
   }, []);
 
   // Get selected platforms from localStorage or use all platforms as fallback
-  const platforms = useMemo(() => {
+  const [platforms, setPlatforms] = useState<Platform[]>(allPlatforms);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedPlatforms = localStorage.getItem('dashboardSelectedPlatforms');
       if (savedPlatforms) {
@@ -149,14 +151,19 @@ export default function DashboardClient({
               'instagram': 'Instagram',
               'facebook': 'Facebook'
             };
-            return parsedPlatforms.map((id: string) => platformMap[id]).filter(Boolean) as Platform[];
+            const mappedPlatforms = parsedPlatforms.map((id: string) => platformMap[id]).filter(Boolean) as Platform[];
+            setPlatforms(mappedPlatforms);
+          } else {
+            setPlatforms(allPlatforms);
           }
         } catch (error) {
           console.warn('Error parsing selected platforms from localStorage:', error);
+          setPlatforms(allPlatforms);
         }
+      } else {
+        setPlatforms(allPlatforms);
       }
     }
-    return allPlatforms;
   }, []);
 
   const isGeneratorPage = pathname === '/dashboard';
@@ -199,14 +206,22 @@ export default function DashboardClient({
         setLoading(true);
         setError(null);
 
-        // Check if we have platform content data from the approval process
+        // Check if posts are already generated and cached
         if (typeof window !== 'undefined') {
           // First, try to load existing posts from persistent storage
           const existingPostsData = localStorage.getItem('dashboardPosts');
           if (existingPostsData) {
             try {
               const existingPosts = JSON.parse(existingPostsData);
-              console.log('Loading existing posts from persistent storage:', existingPosts.length);
+              console.log('Dashboard: Loading existing posts from persistent storage:', existingPosts.length);
+
+              // Update platform IDs for regeneration functionality
+              const platformIds: {[key: string]: string} = {};
+              existingPosts.forEach((post: Post) => {
+                const platformKey = post.platform.toLowerCase();
+                platformIds[platformKey] = post.id.split('-')[0] + '-platform-id'; // Fallback platform ID
+              });
+              setPlatformIds(platformIds);
 
               setPosts(existingPosts);
 
@@ -233,46 +248,53 @@ export default function DashboardClient({
 
               return;
             } catch (error) {
-              console.warn('Error parsing existing posts data:', error);
+              console.warn('Dashboard: Error parsing existing posts data:', error);
             }
           }
 
+          // Check if we have platform content data from the generated-summary page
           const platformContentData = localStorage.getItem('dashboardPlatformContent');
           if (platformContentData) {
             try {
               const contentData = JSON.parse(platformContentData);
-              console.log('Using platform content data from localStorage:', contentData);
+              console.log('Dashboard: Using platform content data from generated-summary page:', contentData);
 
-              // Convert platform content to posts format and extract summary_id
-              const newPosts: Post[] = contentData.platforms.map((platform: any) => {
-                // Map platform names to match the expected format
-                const platformNameMap: Record<string, Platform> = {
-                  'twitter': 'Twitter',
-                  'facebook': 'Facebook',
-                  'instagram': 'Instagram',
-                  'linkedin': 'LinkedIn'
-                };
+              // Convert platform content to posts format
+              const newPosts: Post[] = contentData.platforms
+                .map((platform: any) => {
+                  // Map platform names to match the expected format
+                  const platformNameMap: Record<string, Platform> = {
+                    'twitter': 'Twitter',
+                    'facebook': 'Facebook',
+                    'instagram': 'Instagram',
+                    'linkedin': 'LinkedIn'
+                  };
 
-                const platformName = platformNameMap[platform.platform_name.toLowerCase()] || platform.platform_name;
+                  const platformName = platformNameMap[platform.platform_name.toLowerCase()] || platform.platform_name;
+                  console.log('Dashboard: Processing platform:', platform.platform_name, '->', platformName);
 
-                return {
-                  id: `${platform.platform_name.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                  platform: platformName as Platform,
-                  content: platform.post_text,
-                  image: platform.image_url,
-                  imageHint: `Post for ${platform.platform_name}`,
-                  author: {
-                    name: user?.displayName || 'Post Automation Platform User',
-                    avatar: user?.photoURL || 'https://picsum.photos/seed/user/40/40',
-                  },
-                };
+                  return {
+                    id: `${platform.platform_name.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    platform: platformName as Platform,
+                    content: platform.post_text,
+                    image: platform.image_url,
+                    imageHint: `Post for ${platform.platform_name}`,
+                    author: {
+                      name: user?.displayName || 'Post Automation Platform User',
+                      avatar: user?.photoURL || 'https://picsum.photos/seed/user/40/40',
+                    },
+                  };
+                });
+
+              console.log('Dashboard: Generated posts from stored data:', newPosts);
+
+              // Update platform IDs for regeneration functionality
+              const platformIds: {[key: string]: string} = {};
+              contentData.platforms.forEach((platform: any) => {
+                const platformKey = platform.platform_name.toLowerCase();
+                platformIds[platformKey] = platform.platform_id || platform.id || '';
               });
-
-              // Log summary_id availability for debugging (not used in regeneration)
-              console.log('Summary IDs available in response:', contentData.platforms?.map((p: any) => ({
-                platform: p.platform_name,
-                summary_id: p.summary_id
-              })).filter((p: any) => p.summary_id));
+              setPlatformIds(platformIds);
 
               setPosts(newPosts);
 
@@ -307,18 +329,18 @@ export default function DashboardClient({
 
               toast({
                 title: 'Posts Loaded Successfully!',
-                description: `Loaded ${newPosts.length} posts from approved content.`,
+                description: `Loaded ${newPosts.length} posts from generated content.`,
               });
 
               return;
             } catch (error) {
-              console.warn('Error parsing platform content data:', error);
+              console.warn('Dashboard: Error parsing platform content data:', error);
             }
           }
         }
 
-        // If no platform content data exists, show simple message instead of generating posts
-        console.log('No platform content data found, showing simple message');
+        // If no data available, show simple message
+        console.log('Dashboard: No data found, showing message');
         setLoading(false);
         return;
       } else {
@@ -420,6 +442,21 @@ export default function DashboardClient({
     toast({
       title: 'Post Published!',
       description: `Your post for ${post.platform} has been published.`,
+    });
+  };
+
+  const handlePostToPlatform = (post: Post) => {
+    toast({
+      title: 'Post Sent!',
+      description: `Your post has been sent to ${post.platform}. (API integration pending)`,
+    });
+  };
+
+  const handlePostAllToPlatforms = () => {
+    const postCount = posts.length;
+    toast({
+      title: 'All Posts Sent!',
+      description: `All ${postCount} posts have been sent to their respective platforms. (API integration pending)`,
     });
   };
 
@@ -742,7 +779,7 @@ export default function DashboardClient({
           <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
             <div className="text-center">
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-                Not selected platforms
+                posts are not fetched
               </h1>
             </div>
           </div>
@@ -816,8 +853,8 @@ export default function DashboardClient({
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
               <div className="md:col-span-2 space-y-8">
-                {/* View Mode Toggle */}
-                <div className="flex justify-between items-center">
+                {/* View Mode Toggle and Post All */}
+                <div className="flex justify-between items-center flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="flex items-center gap-1">
                       {viewMode === 'desktop' ? (
@@ -833,7 +870,17 @@ export default function DashboardClient({
                       )}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handlePostAllToPlatforms}
+                      disabled={posts.length === 0}
+                      className="flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 hover:from-green-600 hover:to-emerald-700"
+                    >
+                      <Send className="h-3 w-3" />
+                      Post All ({posts.length})
+                    </Button>
                     <Button
                       variant={viewMode === 'desktop' ? 'default' : 'outline'}
                       size="sm"
@@ -880,6 +927,7 @@ export default function DashboardClient({
                     onRegenerate={handleRegenerate}
                     onDelete={handleDelete}
                     onPublish={handlePublish}
+                    onPost={handlePostToPlatform}
                     globalImageUri={undefined}
                     isOpen={expandAllMode || openPostId === post.id}
                     onToggle={() => {
@@ -902,7 +950,7 @@ export default function DashboardClient({
               {/* Editing Panel */}
               {editingPost && (
                 <div className="md:col-span-1">
-                  <Card className="sticky top-24">
+                  <Card className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 sticky top-24">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">Edit {editingPost.platform} Post</CardTitle>
