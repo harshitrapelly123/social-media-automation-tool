@@ -127,7 +127,7 @@ function LoginPageContent() {
             </p>
           </div>
 
-          <div className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 rounded-2xl border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 p-4 sm:p-6 md:p-8">
+          <div className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/90 rounded-2xl border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-800/90 p-4 sm:p-6 md:p-8">
             <LoginForm />
           </div>
         </div>
