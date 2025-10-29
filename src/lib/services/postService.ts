@@ -20,6 +20,16 @@ export interface ApproveSummaryResponse {
   approved: boolean;
 }
 
+export interface ApproveContentResponse {
+  message: string;
+  approved: boolean;
+}
+
+export interface PublishContentResponse {
+  message: string;
+  published: boolean;
+}
+
 export interface PlatformContent {
   platform_id: string;
   platform_name: string;
@@ -75,6 +85,22 @@ export const PostService = {
       return response;
     } catch (error: any) {
       console.error('PostService.approveSummary error:', error);
+      throw error;
+    }
+  },
+
+  approveContent: async (platformId: string, postText: string, imageUrl: string): Promise<ApproveContentResponse> => {
+    try {
+      console.log('PostService.approveContent called with:', { platformId, postText: postText.substring(0, 100) + '...', imageUrl });
+      const response = await apiClient.post<ApproveContentResponse>("/posts/approve-content", {
+        platform_id: platformId,
+        post_text: postText,
+        image_url: imageUrl
+      });
+      console.log('PostService.approveContent response:', response);
+      return response;
+    } catch (error: any) {
+      console.error('PostService.approveContent error:', error);
       throw error;
     }
   },
@@ -166,6 +192,26 @@ export const PostService = {
         status: error.response?.status,
         data: error.response?.data,
         stack: error.stack
+      });
+      throw error;
+    }
+  },
+
+  publishContent: async (platformId: string): Promise<PublishContentResponse> => {
+    try {
+      const requestBody = { platform_id: platformId };
+      console.log('PostService.publishContent called with request body:', requestBody);
+
+      const response = await apiClient.post<PublishContentResponse>("/posts/publish", requestBody);
+      console.log('PostService.publishContent response:', response);
+      return response;
+    } catch (error: any) {
+      console.error('PostService.publishContent error details:', {
+        message: error?.message,
+        response: error?.response,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        requestBody: { platform_id: platformId }
       });
       throw error;
     }

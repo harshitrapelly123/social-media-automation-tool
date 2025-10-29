@@ -50,6 +50,37 @@ export default function DashboardClient({
   }, [user, firestore]);
   const { data: userData } = useDoc(userDocRef);
 
+  // State declarations - all state must be declared before useEffect
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [publishedPosts, setPublishedPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openPostId, setOpenPostId] = useState<string | null>(null);
+  const [expandAllMode, setExpandAllMode] = useState(true);
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingMode, setEditingMode] = useState<'text' | 'image' | null>(null);
+  const [editingDescription, setEditingDescription] = useState('');
+  const [isGeneratingEdit, setIsGeneratingEdit] = useState(false);
+  const [regeneratingImagePostId, setRegeneratingImagePostId] = useState<string | null>(null);
+  const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
+  const [postingPosts, setPostingPosts] = useState<Set<string>>(new Set());
+  const [platformIds, setPlatformIds] = useState<{[key: string]: string}>({});
+
+  // Persist posts and platform IDs to localStorage whenever they change
+  useEffect(() => {
+    if (posts.length > 0 && typeof window !== 'undefined') {
+      localStorage.setItem('dashboardPosts', JSON.stringify(posts));
+      localStorage.setItem('dashboardPlatformIds', JSON.stringify(platformIds));
+    }
+  }, [posts, platformIds]);
+
+  // UUID validation helper
+  const isValidUUID = (uuid: string): boolean => {
+    const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return regex.test(uuid);
+  };
+
   const topics = useMemo(() => {
     // First check if we have selected topics from localStorage (client-side only)
     if (typeof window !== 'undefined') {
@@ -76,33 +107,6 @@ export default function DashboardClient({
     return defaultTopics;
   }, [user, userData]);
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [publishedPosts, setPublishedPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Persist posts to localStorage whenever posts change
-  useEffect(() => {
-    if (posts.length > 0 && typeof window !== 'undefined') {
-      localStorage.setItem('dashboardPosts', JSON.stringify(posts));
-    }
-  }, [posts]);
-
-  const [openPostId, setOpenPostId] = useState<string | null>(null);
-  const [expandAllMode, setExpandAllMode] = useState(true);
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
-
-  // Editing panel state
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [editingMode, setEditingMode] = useState<'text' | 'image' | null>(null);
-  const [editingDescription, setEditingDescription] = useState('');
-  const [isGeneratingEdit, setIsGeneratingEdit] = useState(false);
-  const [regeneratingImagePostId, setRegeneratingImagePostId] = useState<string | null>(null);
-  const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
-
-  // Store platform IDs for API calls
-  const [platformIds, setPlatformIds] = useState<{[key: string]: string}>({});
-
   // Initialize platform IDs and summary ID from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -125,8 +129,20 @@ export default function DashboardClient({
           const parsed = JSON.parse(platformContentData);
           const ids: {[key: string]: string} = {};
           parsed.platforms?.forEach((platform: any) => {
-            const platformKey = platform.platform_name.toLowerCase();
-            ids[platformKey] = platform.platform_id || platform.id || '';
+            // Map platform names consistently with the final display names
+            const platformNameMap: Record<string, string> = {
+              'twitter': 'x', // Twitter becomes X, so key should be 'x'
+              'facebook': 'facebook',
+              'instagram': 'instagram',
+              'linkedin': 'linkedin'
+            };
+            const platformKey = platformNameMap[platform.platform_name.toLowerCase()] || platform.platform_name.toLowerCase();
+            const candidateId = platform.platform_id || platform.id || '';
+
+            // Only store valid UUIDs
+            if (candidateId && isValidUUID(candidateId)) {
+              ids[platformKey] = candidateId;
+            }
           });
           setPlatformIds(ids);
         } catch (error) {
@@ -212,20 +228,23 @@ export default function DashboardClient({
         if (typeof window !== 'undefined') {
           // First, try to load existing posts from persistent storage
           const existingPostsData = localStorage.getItem('dashboardPosts');
+          const existingPlatformIdsData = localStorage.getItem('dashboardPlatformIds');
+
           if (existingPostsData) {
             try {
               const existingPosts = JSON.parse(existingPostsData);
               console.log('Dashboard: Loading existing posts from persistent storage:', existingPosts.length);
-
-              // Update platform IDs for regeneration functionality
-              const platformIds: {[key: string]: string} = {};
-              existingPosts.forEach((post: Post) => {
-                const platformKey = post.platform.toLowerCase();
-                platformIds[platformKey] = post.id.split('-')[0] + '-platform-id'; // Fallback platform ID
-              });
-              setPlatformIds(platformIds);
-
               setPosts(existingPosts);
+
+              // Also restore platform IDs if they exist
+              if (existingPlatformIdsData) {
+                try {
+                  const existingPlatformIds = JSON.parse(existingPlatformIdsData);
+                  setPlatformIds(existingPlatformIds);
+                } catch (error) {
+                  console.warn('Error parsing existing platform IDs data:', error);
+                }
+              }
 
               // Set loading state for images
               const loadingImageSet = new Set<string>();
@@ -273,7 +292,7 @@ export default function DashboardClient({
                   };
 
                   const platformName = platformNameMap[platform.platform_name.toLowerCase()] || platform.platform_name;
-                  console.log('Dashboard: Processing platform:', platform.platform_name, '->', platformName);
+                  console.log('Dashboard: Processing platform:', platform.platform_name, '->', platformName, 'platformId:', platform.platform_id || platform.id);
 
                   return {
                     id: `${platform.platform_name.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -293,7 +312,14 @@ export default function DashboardClient({
               // Update platform IDs for regeneration functionality
               const platformIds: {[key: string]: string} = {};
               contentData.platforms.forEach((platform: any) => {
-                const platformKey = platform.platform_name.toLowerCase();
+                // Map platform names consistently with the final display names
+                const platformNameMap: Record<string, string> = {
+                  'twitter': 'x', // Twitter becomes X, so key should be 'x'
+                  'facebook': 'facebook',
+                  'instagram': 'instagram',
+                  'linkedin': 'linkedin'
+                };
+                const platformKey = platformNameMap[platform.platform_name.toLowerCase()] || platform.platform_name.toLowerCase();
                 platformIds[platformKey] = platform.platform_id || platform.id || '';
               });
               setPlatformIds(platformIds);
@@ -447,11 +473,48 @@ export default function DashboardClient({
     });
   };
 
-  const handlePostToPlatform = (post: Post) => {
-    toast({
-      title: 'Post Sent!',
-      description: `Your post has been sent to ${post.platform}. (API integration pending)`,
-    });
+  const handlePostToPlatform = async (post: Post) => {
+    const platformKey = post.platform.toLowerCase();
+    const platformId = platformIds[platformKey];
+
+    if (!platformId || !isValidUUID(platformId)) {
+      return toast({
+        variant: 'destructive',
+        title: 'Post Failed',
+        description: 'Platform ID not found or invalid. Please regenerate the content.',
+      });
+    }
+
+    // Set loading state for this post
+    setPostingPosts(prev => new Set([...prev, post.id]));
+
+    try {
+      // First, approve the content
+      const approveResponse = await PostService.approveContent(platformId, post.content, post.image);
+
+      // Then, publish the content
+      const publishResponse = await PostService.publishContent(platformId);
+
+      // Show success message for successful approval and publishing
+      toast({
+        title: 'Post Published!',
+        description: `Post approved and published to ${post.platform}.`,
+      });
+    } catch (error: any) {
+      console.error('Post approval/publishing error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Post Failed',
+        description: 'An error occurred while approving or publishing the post.',
+      });
+    } finally {
+      // Remove loading state for this post
+      setPostingPosts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(post.id);
+        return newSet;
+      });
+    }
   };
 
   const handlePostAllToPlatforms = () => {
@@ -503,6 +566,10 @@ export default function DashboardClient({
 
           if (!platformId) {
             throw new Error(`Platform ID not found for ${originalPost.platform}`);
+          }
+
+          if (!isValidUUID(platformId)) {
+            throw new Error(`Invalid platform ID format for ${originalPost.platform}`);
           }
 
           console.log('Calling regeneratePostText with:', {
@@ -583,6 +650,10 @@ export default function DashboardClient({
 
           if (!platformId) {
             throw new Error(`Platform ID not found for ${originalPost.platform}`);
+          }
+
+          if (!isValidUUID(platformId)) {
+            throw new Error(`Invalid platform ID format for ${originalPost.platform}`);
           }
 
           console.log('Calling regeneratePostImage with:', {
@@ -972,6 +1043,7 @@ export default function DashboardClient({
                     viewMode={viewMode}
                     onStartEditing={handleStartEditing}
                     isImageLoading={regeneratingImagePostId === post.id || loadingImages.has(post.id)}
+                    isPostLoading={postingPosts.has(post.id)}
                   />
                 ))}
               </div>

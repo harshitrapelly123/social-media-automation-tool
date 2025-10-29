@@ -66,9 +66,10 @@ interface PostPreviewProps {
   viewMode?: 'desktop' | 'mobile';
   onStartEditing?: (postId: string, mode: 'text' | 'image') => void;
   isImageLoading?: boolean;
+  isPostLoading?: boolean;
 }
 
-export default function PostPreview({ post, onRegenerate, onDelete, onPublish, onPost, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing, isImageLoading = false }: PostPreviewProps) {
+export default function PostPreview({ post, onRegenerate, onDelete, onPublish, onPost, globalImageUri, isOpen, onToggle, viewMode = 'desktop', onStartEditing, isImageLoading = false, isPostLoading = false }: PostPreviewProps) {
   const handleRegenerateClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent event bubbling to CollapsibleTrigger
@@ -141,8 +142,13 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, o
                   size="sm"
                   className="h-7 w-7 p-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white border-green-500"
                   title="Post"
+                  disabled={isPostLoading}
                 >
-                  <Send className="h-3 w-3" />
+                  {isPostLoading ? (
+                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="h-3 w-3" />
+                  )}
                 </Button>
                 <Button
                   onClick={handlePublishClick}
@@ -316,8 +322,13 @@ export default function PostPreview({ post, onRegenerate, onDelete, onPublish, o
                 size="sm"
                 className="h-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white border-green-500"
                 title="Post"
+                disabled={isPostLoading}
               >
-                <Send className="h-3 w-3" />
+                {isPostLoading ? (
+                  <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="h-3 w-3" />
+                )}
               </Button>
               <Button
                 onClick={handlePublishClick}
