@@ -76,23 +76,16 @@ export default function RegistrationForm({ onRegisterSuccess }: RegistrationForm
         data.selectedTopics // Use selectedTopics as preferences
       );
 
-      // Store token in cookies and localStorage
-      document.cookie = `token=${response.access_token}; path=/; max-age=${7 * 24 * 60 * 60}; samesite=strict`; // 7 days
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', response.access_token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        localStorage.setItem('isAuthenticated', 'true');
-      }
+      // Note: Intentionally NOT storing token/user data after registration
+      // We want users to manually log in after registration for security
 
       toast({
         title: 'Registration Successful!',
         description: 'Welcome to the platform! Please log in with your new account.',
       });
 
-      // Redirect to login page with fromRegister parameter to ensure login tab is shown
-      const loginUrl = new URL('/login', window.location.origin);
-      loginUrl.searchParams.set('fromRegister', 'true');
-      router.push(loginUrl.pathname + loginUrl.search);
+      // Redirect to login page
+      router.push('/login');
     } catch (error: any) {
       // Don't log to console to avoid popup errors - error handling is done via toast
 

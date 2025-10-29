@@ -1,20 +1,17 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-
-import LoginForm from '@/components/app/login-form';
+import RegistrationForm from '@/components/app/registration-form';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { ArrowLeft, AlertCircle, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [showSessionExpired, setShowSessionExpired] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Check if user is already logged in and redirect to dashboard
@@ -28,17 +25,12 @@ export default function LoginPage() {
         return;
       }
     }
+  }, [router]);
 
-    // Check for session expired or logout parameters
-    const expired = searchParams.get('expired');
-    const logout = searchParams.get('logout');
-
-    if (expired === 'true' || logout === 'true') {
-      setShowSessionExpired(true);
-      // Auto-hide the message after 5 seconds
-      setTimeout(() => setShowSessionExpired(false), 5000);
-    }
-  }, [router, searchParams]);
+  const handleRegisterSuccess = () => {
+    // Redirect to login page after successful registration
+    router.push('/login');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative">
@@ -108,28 +100,33 @@ export default function LoginPage() {
         <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
-      <div className="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4 md:p-6 pt-28">
+      <div className="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4 md:p-6 pt-20 sm:pt-24 md:pt-28 lg:pt-10">
         <div className="w-full max-w-md space-y-6 sm:space-y-8">
           {/* Session Expired Alert */}
-            
+          {showSessionExpired && (
+            <Alert className="mb-4 sm:mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-sm sm:text-base text-orange-800 dark:text-orange-200">
+                You need to sign in to access this page.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="text-center">
-            <h1 className="font-headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 dark:text-slate-200 bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent leading-tight">
-              Welcome Back
+            <h1 className=" mt-6 sm:mt-10 md:mt-12 lg:mt-16 font-headline text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 dark:text-slate-200 bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 dark:from-slate-200 dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent leading-tight">
+              Create an Account
             </h1>
-            <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed px-2">
-              Sign in to continue to your dashboard.
-            </p>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-              New to the platform?{' '}
-              <Link href="/register" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium underline">
-                Create an account
+
+            <p className="mt-3 sm:mt-4 md:mt-6 lg:mt-8 text-sm text-slate-500 dark:text-slate-400">
+              Already have an account?{' '}
+              <Link href="/login" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium underline">
+                Sign in here
               </Link>
             </p>
           </div>
 
           <div className="backdrop-blur-sm bg-white/80 dark:bg-slate-800/80 rounded-2xl border-0 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 p-4 sm:p-6 md:p-8">
-            <LoginForm />
+            <RegistrationForm onRegisterSuccess={handleRegisterSuccess} />
           </div>
         </div>
       </div>

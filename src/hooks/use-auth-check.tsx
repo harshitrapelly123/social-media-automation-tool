@@ -23,8 +23,8 @@ export const useAuthCheck = (options: UseAuthCheckOptions = {}) => {
       if (showToast) {
         toast({
           variant: 'destructive',
-          title: 'Session Expired',
-          description: 'Your session token has expired. Please sign in again.',
+          title: 'Authentication Required',
+          description: 'You need to sign in to access this page.',
         });
       }
 

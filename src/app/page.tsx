@@ -43,12 +43,9 @@ export default function Home() {
           <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed px-2 sm:px-4">
             Your AI-powered partner for creating and scheduling engaging social media content.
           </p>
-          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-            <Button asChild size="lg" className="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-full">
-              <Link href="/login">Get Started</Link>
-            </Button>
-            <Button onClick={handleCreatePost} variant="outline" size="lg" className="w-full sm:w-auto min-w-[200px] border-2 border-slate-200 dark:border-slate-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-slate-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-full">
-              Create Post
+          <div className="mt-6 sm:mt-8 flex gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
+            <Button onClick={handleCreatePost} size="lg" className="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-full">
+              Get Started
             </Button>
           </div>
         </div>
