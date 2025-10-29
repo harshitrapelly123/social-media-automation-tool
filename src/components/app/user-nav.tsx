@@ -110,9 +110,17 @@ export default function UserNav() {
   const handleSignOut = async () => {
     const clearClientData = () => {
       try {
+        // Preserve theme preference during logout
+        const savedTheme = localStorage.getItem('theme');
+
         // Clear local/session storage
         localStorage.clear();
         sessionStorage.clear();
+
+        // Restore theme preference after clearing
+        if (savedTheme) {
+          localStorage.setItem('theme', savedTheme);
+        }
 
         // Clear specific authentication cookies that middleware checks
         const authCookies = ['token', 'access_token', 'firebase:authUser:*:*'];

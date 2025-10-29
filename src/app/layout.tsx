@@ -29,13 +29,26 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
           rel="stylesheet"
         />
+        {/* Initialize theme to light for new users */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (typeof window !== 'undefined' && !localStorage.getItem('theme')) {
+                  localStorage.setItem('theme', 'light');
+                }
+              } catch (e) {
+                // Ignore in SSR or if localStorage is not available
+              }
+            `,
+          }}
+        />
       </head>
       <body className="font-body antialiased">
         <ThemeProvider
           defaultTheme="light"
           storageKey="theme"
-          enableSystem
-          disableTransitionOnChange
+          enableSystem={false}
         >
           <FirebaseClientProvider>
             <MainLayout>{children}</MainLayout>

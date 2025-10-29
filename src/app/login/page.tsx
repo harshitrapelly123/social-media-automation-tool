@@ -1,17 +1,16 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-
 import LoginForm from '@/components/app/login-form';
 import { ThemeToggle } from '@/components/app/theme-toggle';
 import { ArrowLeft, AlertCircle, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [showSessionExpired, setShowSessionExpired] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,8 +45,8 @@ export default function LoginPage() {
       <header className="absolute top-0 left-0 right-0 z-50 flex h-16 items-center gap-2 sm:gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-sm">
         <Button
           variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
+                        size="sm"
+          onClick={() => window.history.back()}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300 flex-shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -134,5 +133,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

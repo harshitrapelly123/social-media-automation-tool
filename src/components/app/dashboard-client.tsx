@@ -800,15 +800,15 @@ export default function DashboardClient({
         <div className="relative z-10">
           {/* Header */}
           <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-6 backdrop-blur-sm md:px-8 lg:px-12">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back</span>
-            </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/generated-summary')}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back</span>
+          </Button>
 
             <Link href="/">
               <div className="flex items-center gap-2 mr-4 cursor-pointer">
@@ -890,7 +890,7 @@ export default function DashboardClient({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => router.push('/generated-summary')}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
           >
             <ArrowLeft className="w-4 h-4" />

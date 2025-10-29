@@ -28,7 +28,7 @@ export default function TopicsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => router.push('/')}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300"
           >
             <ArrowLeft className="w-4 h-4" />

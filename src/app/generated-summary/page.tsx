@@ -538,7 +538,7 @@ The future holds immense potential for those ready to embrace these innovations.
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+            onClick={() => router.push('/create-post')}
           className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300 flex-shrink-0"
         >
           <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />

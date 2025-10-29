@@ -39,7 +39,7 @@ export default function RegisterPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={() => window.history.back()}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100 transition-colors duration-300 flex-shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -100,7 +100,7 @@ export default function RegisterPage() {
         <div className="absolute top-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
-      <div className="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4 md:p-6 pt-20 sm:pt-24 md:pt-28 lg:pt-10">
+      <div className="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4 md:p-6 pt-20 sm:pt-24 md:pt-28 lg:pt-28">
         <div className="w-full max-w-md space-y-6 sm:space-y-8">
           {/* Session Expired Alert */}
           {showSessionExpired && (
